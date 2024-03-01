@@ -9,14 +9,53 @@ let authorization
 twitch.onAuthorized(function (auth) {
   authorization = 'Bearer ' + auth.token
   console.log('bits enabled: ' + twitch.features.isBitsEnabled)
+
   //twitch.bits.setUseLoopback(true)
 })
 
-const jaedolphButton = document.getElementById('jaedolph')
-jaedolphButton.addEventListener('click', jaedolphWebhook)
+await renderLayout()
 
-const mulletButton = document.getElementById('mullet')
-mulletButton.addEventListener('click', mulletWebhook)
+// const jaedolphButton = document.getElementById('jaedolph')
+// jaedolphButton.addEventListener('click', jaedolphWebhook)
+
+// const mulletButton = document.getElementById('mullet')
+// mulletButton.addEventListener('click', mulletWebhook)
+
+
+async function renderLayout () {
+  console.debug("layout")
+  const response = await fetch(
+    extensionUri + '/layout/1', {
+      method: "GET",
+    }
+  )
+
+  const layout = await response.json()
+  console.debug(layout)
+  const elements = layout["elements"]
+  const mainPanel = document.getElementById('mainPanel')
+  let pannelInner = ""
+  for (const index in elements){
+
+    const element = elements[index]
+    console.log(element)
+    const element_type = element["type"]
+    console.log(element_type)
+    if (element_type == "image") {
+      const element_id = element["id"]
+      pannelInner += `<div><img src="${extensionUri}/image/${element_id}" class="center"></div>`
+    }
+    if (element_type == "text") {
+      const text = element["text"]
+      pannelInner += `<div><p class="center">${text}</p></div>`
+    }
+
+  }
+
+  mainPanel.innerHTML = pannelInner
+
+
+}
 
 async function jaedolphWebhook () {
   await webhookRedeem("jaedolph")

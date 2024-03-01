@@ -6,7 +6,7 @@ body {
 
 p {
     font-weight: 400;
-    font-size: 13px;
+    font-size: 15px;
 }
 
 label {
@@ -61,8 +61,8 @@ blockquote p {
 .grid-container {
     display: grid;
     grid-template-columns: auto auto;
-    gap: 10px;
-    padding: 10px;
+    gap: 5px;
+    padding: 5px;
 }
 
 .center {

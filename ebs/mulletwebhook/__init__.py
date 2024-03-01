@@ -5,6 +5,7 @@ from flask import Flask
 from flask_cors import CORS
 
 from mulletwebhook.config import Config
+from mulletwebhook.database import db
 
 logging.basicConfig(
     stream=sys.stdout,
@@ -18,6 +19,10 @@ def create_app(config_class: type = Config) -> Flask:
 
     app.config.from_object(config_class)
     app.logger.setLevel("INFO")
+
+    # initialize database
+    db.init_app(app)
+
     # pylint: disable=import-outside-toplevel
     import mulletwebhook.main.routes as main_routes
     # pylint: disable=
