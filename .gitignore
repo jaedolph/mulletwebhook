@@ -1,0 +1,15 @@
+node_modules/
+ebs/venv
+*.egg-info
+*.db
+*.log
+*.env
+.tox
+.coverage
+htmlcov
+__pycache__/
+build/
+package-lock.json
+yarn.lock
+*.zip
+.vscode

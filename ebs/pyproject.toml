@@ -1,0 +1,41 @@
+
+[project]
+name = "mulletwebhook"
+description = "Backend for Mullet Webhook twitch extension"
+version = "0.0.1"
+authors = [
+    { name = "Jaedolph - Lord of Games" }
+]
+dependencies = [
+    "flask==2.*",
+    "Flask-SQLAlchemy==3.*",
+    "flask-cors==4.*",
+    "requests==2.*",
+    "pyjwt[crypto]==2.*",
+    "psycopg2-binary==2.*",
+    "gunicorn==21.*",
+]
+
+[project.scripts]
+mulletwebhook = "mulletwebhook.__main__:main"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["mulletwebhook*"]
+
+[tool.black]
+line-length = 100
+
+[tool.docformatter]
+wrap-summaries = 100
+wrap-descriptions = 100
+
+[tool.pylint]
+load-plugins = ["pylint.extensions.docparams", "pylint.extensions.docstyle"]
+max-args = 10
+max-attributes = 10
+generated-members = "codes.*"
+disable = ["fixme"]
