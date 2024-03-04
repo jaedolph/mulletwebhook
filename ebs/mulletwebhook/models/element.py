@@ -40,10 +40,10 @@ class Webhook(db.Model):  # type: ignore
     """Database model to store webhook information."""
 
     id: int = db.Column(db.Integer, primary_key=True)
-    name: str = db.Column(db.String, nullable=False)
+    text: str = db.Column(db.String, nullable=False)
     url: str = db.Column(db.String, nullable=False)
     bits_product: str = db.Column(db.String, nullable=False)
-    data: str = db.Column(db.String, nullable=False)
+    data: str = db.Column(db.String, default="{}")
     cooldown: int = db.Column(db.Integer, default=0)
     last_triggered: datetime = db.Column(db.DateTime, default=datetime.fromtimestamp(0))
     element_id: int = db.Column(db.Integer, nullable=False)

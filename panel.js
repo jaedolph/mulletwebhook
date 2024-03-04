@@ -33,6 +33,9 @@ async function renderLayout () {
   const layout = await response.json()
   console.debug(layout)
   const elements = layout["elements"]
+  let webhooks = []
+  const panelTitle = document.getElementById('panelTitle')
+  panelTitle.innerHTML = layout["layout"]["title"]
   const mainPanel = document.getElementById('mainPanel')
   let pannelInner = ""
   for (const index in elements){
@@ -43,46 +46,62 @@ async function renderLayout () {
     console.log(element_type)
     if (element_type == "image") {
       const element_id = element["id"]
-      pannelInner += `<div><img src="${extensionUri}/image/${element_id}" class="center"></div>`
+      pannelInner += `<div><img src="${extensionUri}/image/${element_id}"></div>`
     }
     if (element_type == "text") {
-      const text = element["text"]
-      pannelInner += `<div><p class="center">${text}</p></div>`
+      const text = element["text"]["text"]
+      pannelInner += `<div><p>${text}</p></div>`
     }
-
+    if (element_type == "webhook") {
+      const text = element["webhook"]["text"]
+      pannelInner += `<div><button id="element${index}">1 <img src="bit.gif" width="28" height="28"> ${text} </button></div>`
+      webhooks.push({
+        "html_id": `element${index}`,
+        "element": element,
+      })
+    }
   }
 
   mainPanel.innerHTML = pannelInner
-
+  for (const index in webhooks){
+    const webhook = webhooks[index]
+    console.log(webhook)
+    const webhookElement = document.getElementById(webhook["html_id"])
+    const webhookID = webhook["element"]["webhook"]["id"]
+    console.log(webhookID)
+    const webhookBitsProduct = webhook["element"]["webhook"]["bits_product"]
+    console.log(webhookBitsProduct)
+    webhookElement.addEventListener(
+      "click",
+      async function () {
+        webhookRedeem(webhookID, webhookBitsProduct)
+      },
+      false,
+    )
+  }
 
 }
 
-async function jaedolphWebhook () {
-  await webhookRedeem("jaedolph")
-}
 
-async function mulletWebhook () {
-  await webhookRedeem("mullet")
-}
-
-async function webhookRedeem (redeem) {
+async function webhookRedeem (webhookID, webhookBitsProduct) {
+  console.log(webhookID)
+  console.log(webhookBitsProduct)
   try {
-    let productSku = 'webhook_1bit';
     const bitsTransaction = new Promise((complete, cancel) => {
       twitch.bits.onTransactionComplete(complete);
       twitch.bits.onTransactionCancelled(cancel);
     })
-    twitch.bits.useBits(productSku);
+    twitch.bits.useBits(webhookBitsProduct);
     const tx = await bitsTransaction;
 
     const response = await fetch(
-      extensionUri + '/redeem', {
+      extensionUri + '/webhook', {
         method: "POST",
         headers: {
           'Content-Type': 'application/json',
           Authorization: authorization
         },
-        body: JSON.stringify({"redeem": redeem, "transaction": tx})
+        body: JSON.stringify({"webhook_id": webhookID, "transaction": tx})
       }
     )
     console.log("test")
@@ -93,29 +112,3 @@ async function webhookRedeem (redeem) {
     twitch.bits.onTransactionCancelled(() => {});
   }
 }
-
-
-// document.body.addEventListener('', async function (evt: any) {
-// 	console.log('tangia:buyTwitchProduct', evt.detail);
-// 	try {
-// 		window.document.body.classList.add('opacity-50');
-// 		// segment?.track("Ext Purchase Started", { interaction: i, interactionInfo, buyerVars });
-// 		const bitsTransaction = new Promise<object>((complete, cancel) => {
-// 			Twitch.ext.bits.onTransactionComplete(complete);
-// 			Twitch.ext.bits.onTransactionCancelled(cancel);
-// 		});
-// 		Twitch.ext.bits.useBits(evt.detail.ProductID);
-// 		// this contains the signed JWT of the buy transaction
-// 		const tx = await bitsTransaction;
-// 		htmx.trigger(window.document.body, 'tangia:purchaseCompleted', { ...evt.detail, ...tx });
-// 		// segment?.track("Ext Purchase Completed", { interaction: i, interactionInfo, buyerVars, product: p });
-// 	} catch (e: any) {
-// 		htmx.trigger(window.document.body, 'tangia:purchaseCancelled', { ...evt.detail, ...e });
-
-// 		// segment?.track("Ext Purchase Failed", { interaction: i, interactionInfo, buyerVars, error: e });
-// 	} finally {
-// 		window.document.body.classList.remove('opacity-50');
-// 		Twitch.ext.bits.onTransactionComplete(() => {});
-// 		Twitch.ext.bits.onTransactionCancelled(() => {});
-// 	}
-// });

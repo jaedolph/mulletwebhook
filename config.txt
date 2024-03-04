@@ -4,21 +4,42 @@ json returned by /layouts/<uuid> endpoint
     "elements": [
         {
             "type": "image",
-            "uuid": "c6c1289b-9b85-4ae1-b3bf-24af259e8eea"
+            "id": "a0e2a1d4-81d0-4eaf-ab33-a002d588c51b",
+            "image": {
+                "id": "c6c1289b-9b85-4ae1-b3bf-24af259e8eea",
+                "data": null, # only required when uploading layout
+            }
         },
         {
             "type": "text",
-            "text": "My text",
+            "id": "a82d5646-8dd4-4a9f-bfb6-5ebd6ee655f4",
+            "text": {
+                "id": "325d738d-9534-4007-b485-45c189b86fc1",
+                "text": "My text",
+            },
         },
         {
-            "type": "reward"
-            "text": "Upsidedown screen",
-            "bits_product": "100bits",
-            "uuid": "c6c1289b-9b85-4ae1-b3bf-24af259e8eea"
+            "type": "Webhook"
+            "id": "a82d5646-8dd4-4a9f-bfb6-5ebd6ee655f4",
+            "webhook": {
+                "text": "Upsidedown screen",
+                "url": null, # only required when uploading layout
+                "bits_product": "100bits",
+                "id": "c6c1289b-9b85-4ae1-b3bf-24af259e8eea"
+                "data": {
+                    "test_val1": 1,
+                    "test_val2": "testing",
+                },
+                "cooldown": 30,
+                "last_triggered": "<timestamp>",
+            },
         },
     ],
     "layout": {
-        "columns": 2
+        "id": "fd78b2e7-8038-4949-bc2d-425109fdfe11",
+        "name": "my layout",
+        "title": "Test Title",
+        "columns": 2,
     },
 }
 
@@ -41,14 +62,14 @@ Database
 {
     "id": "c6c1289b-9b85-4ae1-b3bf-24af259e8eea",
     "name": "my layout",
+    "title": "Test Title",
     "broadcaster": 120931209,
     "columns": 2,
-    "
 }
 
 # Element
 {
-    "uuid": 93273f20-8e7f-447e-ad79-7f8c118bc2d6
+    "id": 93273f20-8e7f-447e-ad79-7f8c118bc2d6
     "layout: 1222222
     "type": "image"
     "elem_id": 2f18f37b-134c-4e70-b2d2-9987ff69e74d
@@ -56,14 +77,16 @@ Database
 
 # Image
 {
-    "uuid": 2f18f37b-134c-4e70-b2d2-9987ff69e74d,
+    "id": 2f18f37b-134c-4e70-b2d2-9987ff69e74d,
     "data": c2FpZmppYXVuZ2FvaXdnbndlaSA5d2V1ZiB3OXVnZQo=
+    "elem_id": 2f18f37b-134c-4e70-b2d2-9987ff69e74d
 }
 
 # Text
 {
     "id": 303559f6-c679-4d39-b7b5-3d875598afa5,
     "text": "my text",
+    "elem_id": 2f18f37b-134c-4e70-b2d2-9987ff69e74d
 }
 
 # Webhook

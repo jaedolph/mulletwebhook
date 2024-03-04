@@ -1,4 +1,4 @@
-body {
+/* body {
     font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif';
     line-height: 19.5px;
     color: rgb(14, 14, 16);
@@ -56,13 +56,19 @@ blockquote p {
 .timerange button:hover {
     background: rgb(169, 112, 255);
     color: rgb(14, 14, 16);
-}
+} */
 
 .grid-container {
     display: grid;
-    grid-template-columns: auto auto;
+    grid-template-columns: 150px 150px;
+    align-content: center;
     gap: 5px;
     padding: 5px;
+}
+
+img {
+    width: 140px;
+    object-fit: scale-down;
 }
 
 .center {
