@@ -15,23 +15,23 @@ twitch.onAuthorized(function (auth) {
 
 await renderLayout()
 
-// const jaedolphButton = document.getElementById('jaedolph')
-// jaedolphButton.addEventListener('click', jaedolphWebhook)
-
-// const mulletButton = document.getElementById('mullet')
-// mulletButton.addEventListener('click', mulletWebhook)
-
-
-async function renderLayout () {
+async function getLayout(layout) {
   console.debug("layout")
   const response = await fetch(
-    extensionUri + '/layout/1', {
+    extensionUri + `/layouts/${layout}`, {
       method: "GET",
     }
   )
 
-  const layout = await response.json()
-  console.debug(layout)
+  const layout_resp = await response.json()
+  console.debug(layout_resp)
+  return layout_resp
+}
+
+async function renderLayout () {
+
+  const layout = getLayout(1)
+
   const elements = layout["elements"]
   let webhooks = []
   const panelTitle = document.getElementById('panelTitle')

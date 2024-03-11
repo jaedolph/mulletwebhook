@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<head>
+    <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js" type="text/javascript"></script>
+    <script src="htmx.min.js"></script>
+    <script src="globals.js" type="module"></script>
+    <script src="config.js" type="module"></script>
+    <script src="theme.js" type="module"></script>
+</head>
+<html>
+  <body id="root">
+    <button hx-get="https://mulletwebhook-test.hv1.jaedolph.net/layoutstest"
+    hx-trigger="click"
+    hx-target="#testdiv"
+    hx-swap="innerHTML"
+    >
+    Click Me!
+    </button>
+    <div id="testdiv"></div>
+    <button hx-post="https://mulletwebhook-test.hv1.jaedolph.net/layoutstest" hx-prompt="Enter name for layout">
+        New Layout
+    </button>
+    <noscript>
+      You need to enable JavaScript to run this app.
+    </noscript>
+  </body>
+</html>

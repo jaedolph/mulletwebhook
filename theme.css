@@ -64,6 +64,8 @@ blockquote p {
     align-content: center;
     gap: 5px;
     padding: 5px;
+    overflow: scroll;
+    overflow-x: hidden;
 }
 
 img {

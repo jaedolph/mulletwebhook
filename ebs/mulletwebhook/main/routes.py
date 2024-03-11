@@ -8,6 +8,7 @@ from flask import Blueprint, Response, abort, jsonify, make_response, request, c
 import requests
 
 from mulletwebhook import verify
+from mulletwebhook.models.broadcaster import Broadcaster
 from mulletwebhook.models.layout import Layout
 from mulletwebhook.models.element import Element, Image, Text, Webhook, ElementType
 
@@ -46,7 +47,7 @@ def redeem(channel_id: int, role: str) -> Response:
     return resp
 
 @bp.route("/image/<int:image_id>", methods=["GET"])
-def image(image_id) -> Response:
+def image(image_id: int) -> Response:
 
     image = Image.query.filter(
         Image.id == image_id
@@ -58,12 +59,39 @@ def image(image_id) -> Response:
 
     return resp
 
-@bp.route("/layout/<int:layout_id>", methods=["GET"])
-def layout(layout_id) -> Response:
+@bp.route("/layouts/<int:layout_id>", methods=["GET"])
+def layout_id(layout_id: int) -> Response:
 
     resp = make_response(jsonify(get_layout_json(layout_id)))
 
     return resp
+
+@bp.route("/layouts", methods=["GET"])
+@verify.token_required
+def layout(channel_id: int, role: str) -> Response:
+
+    layouts = Layout.query.filter(
+        Layout.broadcaster_id == channel_id
+    ).all()
+    layout_list = []
+    for layout in layouts:
+        layout_list.append({
+            "id": layout.id,
+            "name": layout.name,
+        })
+
+    resp = make_response(jsonify({"layouts": layout_list}))
+
+    return resp
+
+@bp.route("/layoutstest", methods=["GET"])
+@verify.token_required
+def layouttest(channel_id: int, role: str) -> Response:
+
+    resp = make_response("<p>test</p>")
+
+    return resp
+
 
 def get_layout_json(layout_id):
 
