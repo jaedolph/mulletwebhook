@@ -117,6 +117,22 @@ def main() -> None:
         db.session.add(webhook)
         db.session.commit()
 
+        element9 = Element(element_type=ElementType.image, layout=layout.id, position=8)
+        db.session.add(element9)
+        db.session.commit()
+
+        image = Image(data=jaedolph_image, element_id=element9.id)
+        db.session.add(image)
+        db.session.commit()
+
+        element10 = Element(element_type=ElementType.image, layout=layout.id, position=9)
+        db.session.add(element10)
+        db.session.commit()
+
+        image = Image(data=mullet_image, element_id=element10.id)
+        db.session.add(image)
+        db.session.commit()
+
 
 if __name__ == "__main__":
     main()
