@@ -1,5 +1,6 @@
 """Configuration for the app."""
 import os
+import uuid
 
 # pylint: disable=too-few-public-methods
 class Config:
@@ -11,3 +12,8 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get(f"{PREFIX}SQLALCHEMY_DATABASE_URI") or ""
     EBS_URL = os.environ.get(f"{PREFIX}EBS_URL") or ""
     #LOG_LEVEL = os.environ.get(f"{PREFIX}LOG_LEVEL") or "INFO"
+    TESTING = False
+    # SESSION_PERMANENT = False
+    # SESSION_TYPE = "filesystem"
+    SECRET_KEY = "lkasjdglksadjglskadjsaldkg"
+    WTF_CSRF_ENABLED = False

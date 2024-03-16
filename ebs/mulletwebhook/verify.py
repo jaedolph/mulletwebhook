@@ -20,18 +20,22 @@ def token_required(func: Callable[[int, str], R]) -> Callable[[int, str], R]:
 
     @wraps(func)
     def decorated_function(*args, **kwargs) -> R:
-        try:
-            channel_id, role = verify_jwt(flask_request)
-        except PermissionError as exp:
-            error_msg = f"authentication failed: {exp}"
-            current_app.logger.debug(error_msg)
-            return abort(401, error_msg)
+
+        if not current_app.config["TESTING"]:
+            try:
+                channel_id, role = verify_jwt(flask_request)
+            except PermissionError as exp:
+                error_msg = f"authentication failed: {exp}"
+                current_app.logger.debug(error_msg)
+                return abort(401, error_msg)
+        else:
+            channel_id = 12345678
+            role = "broadcaster"
 
         current_app.logger.debug(
             "authenticated request for channel_id=%s role=%s", channel_id, role
         )
         return func(*args, channel_id=channel_id, role=role, **kwargs)
-
     return cast(Callable[[int, str], R], decorated_function)
 
 

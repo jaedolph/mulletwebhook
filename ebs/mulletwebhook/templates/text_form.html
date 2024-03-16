@@ -1,0 +1,13 @@
+<dialog>
+    <div><p>Editing text {{ text_id }}</p></div>
+    <form
+        id="dialog-form"
+        hx-put="{{ form_url }}"
+        hx-swap="innerHTML"
+        hx-target="#dialog-status">
+        {{ form.text.label }} {{ form.text(size=20) }}
+        <input type="submit" value="Submit">
+    </form><br>
+    <div id="dialog-status"></div><br>
+    <button id="dialog-close-button">Close</button>
+</dialog>

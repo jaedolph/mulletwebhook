@@ -5,6 +5,7 @@ let authorization
 
 twitch.onAuthorized(function (auth) {
   authorization = 'Bearer ' + auth.token
+  console.log(auth)
   console.log('bits enabled: ' + twitch.features.isBitsEnabled)
 })
 
@@ -42,27 +43,76 @@ htmx.on("htmx:afterSwap", (e) => {
   // Response targeting #dialog => show the modal
   if (e.detail.target.id == "dialog") {
       const dialog = document.querySelector("dialog")
-      const cancelButton = document.getElementById("cancel-button")
+      const closeButton = document.getElementById("dialog-close-button")
       dialog.showModal()
       dialog.addEventListener("close", () => {
         dialog.remove()
+        console.log("triggering refresh")
+        htmx.trigger("#preview", "layoutUpdate")
       })
-      cancelButton.addEventListener("click", () => {
+      closeButton.addEventListener("click", () => {
         dialog.close()
       })
   }
+
 })
 
-htmx.on('closeModal', function() {
-  console.log("closing modal dialog")
-  document.querySelector('dialog[open]').close();
-});
+// document.body.addEventListener("closeModal", function(event) {
+
+//     console.log("closing modal")
+//     const dialog = document.querySelector("dialog")
+//     dialog.close()
+// })
+
+// htmx.on('closeModal', function() {
+//   console.log("closing modal dialog")
+//   document.querySelector('dialog[open]').close();
+// });
 
 
-document.body.addEventListener("htmx:afterRequest", (event) => {
-  console.log("event")
-  console.log(event.detail.xhr)
+htmx.on("htmx:beforeSwap", (e) => {
+  if (e.detail.target.id == "dialog-status") {
+
+      if (e.detail.shouldSwap){
+        // close the dialog after the success message has been shown for 1s
+        console.log("closing")
+        const dialog = document.querySelector("dialog")
+        setTimeout(() => {
+          dialog.close()
+        }, 1000)
+      } else {
+        console.log(e.detail)
+        // Show the error message on a non-200 response
+        e.detail.shouldSwap = true
+      }
+  }
+
 })
+
+htmx.on("htmx:afterSwap", (e) => {
+  // Response targeting #dialog => show the modal
+  console.log(e.detail)
+  if (e.detail.target.id == "dialog") {
+    const dialog = document.querySelector("dialog")
+    const closeButton = document.getElementById("dialog-close-button")
+    dialog.showModal()
+    dialog.addEventListener("close", () => {
+      //dialog.remove()
+      console.log(e.detail)
+      console.log("triggering refresh")
+      //htmx.trigger("#preview", "layoutUpdate")
+    })
+    closeButton.addEventListener("click", () => {
+      //dialog.close()
+    })
+  }
+})
+
+// document.body.addEventListener("htmx:afterRequest", (event) => {
+//   console.log("event")
+//   console.log(event.detail.xhr)
+//   if event.detail.target =
+// })
 
 // twitch.onAuthorized(function (auth) {
 //   authorization = 'Bearer ' + auth.token

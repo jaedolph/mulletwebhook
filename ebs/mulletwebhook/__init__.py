@@ -12,13 +12,15 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s",
 )
 
+
+
 def create_app(config_class: type = Config) -> Flask:
 
     app = Flask(__name__)
     CORS(app)
 
     app.config.from_object(config_class)
-    app.logger.setLevel("INFO")
+    app.logger.setLevel("DEBUG")
 
     # initialize database
     db.init_app(app)

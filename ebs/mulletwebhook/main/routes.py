@@ -4,7 +4,13 @@ import json
 import jwt
 import base64
 
-from flask import Blueprint, Response, abort, jsonify, make_response, request, current_app
+from flask import Blueprint, Response, abort, jsonify, make_response, request, current_app, render_template
+from flask_wtf import FlaskForm
+from flask_wtf.file import FileRequired, FileAllowed, FileSize
+
+from wtforms import StringField, FileField
+from wtforms.validators import DataRequired, Length, URL
+
 import requests
 from sqlalchemy.exc import NoResultFound
 
@@ -16,6 +22,12 @@ from mulletwebhook.database import db
 
 bp = Blueprint("main", __name__)
 
+
+class TextForm(FlaskForm):
+    text = StringField('text', validators=[DataRequired()])
+
+class ImageForm(FlaskForm):
+    image = FileField(validators=[FileRequired(), FileAllowed(['png']), FileSize(max_size=1048576)])
 
 @bp.route("/webhook", methods=["POST"])
 @verify.token_required
@@ -78,10 +90,99 @@ def image_put(channel_id: int, role: str, image_id: int) -> Response:
     db.session.commit()
 
     response = make_response("<p>Image Updated</p>")
-    response.headers["HX-Trigger"] = "closeModal"
+    # response.headers["HX-Trigger"] = "closeModal"
     response.status_code = 201
 
     return response
+
+@bp.route("/element/<int:element_id>/text/<int:text_id>/edit", methods=["GET", "PUT"])
+@verify.token_required
+def text_edit(channel_id: int, role: str, element_id: int, text_id: int) -> Response:
+    current_app.logger.info("text_id=%s element_id=%s", text_id, element_id)
+
+    form = TextForm()
+
+    text = Text.query.filter(
+        Text.id == text_id
+    ).one()
+
+    if request.method == "PUT":
+        if form.validate():
+            current_app.logger.info("form valid")
+            current_app.logger.info(form.data)
+            text.text = form.text.data
+            db.session.commit()
+            return make_response("<p>text updated</p>", 201)
+        else:
+            current_app.logger.info("form invalid")
+            current_app.logger.info(form.errors)
+            errors_html = ""
+            for field, error in form.errors.items():
+                errors_html += f"{field}: {', '.join(error)}<br>"
+
+            return make_response(f"<p>{errors_html}</p>", 400)
+
+    if request.method == "GET":
+        form.text.data = text.text
+
+    return render_template(
+        "text_form.html",
+        text_id=text_id,
+        form_url=f"{current_app.config['EBS_URL']}/element/{element_id}/text/{text_id}/edit",
+        form=form)
+
+
+@bp.route("/element/<int:element_id>/image/<int:image_id>/edit", methods=["GET", "PUT"])
+@verify.token_required
+def image_edit(channel_id: int, role: str, element_id: int, image_id: int) -> Response:
+    current_app.logger.info("image_id=%s element_id=%s", image_id, element_id)
+
+    form = ImageForm()
+
+    image = Image.query.filter(
+        Image.id == image_id
+    ).one()
+
+    if request.method == "PUT":
+        if form.validate():
+            current_app.logger.info("form valid")
+            current_app.logger.info(form.data)
+            image.data = form.image.data.read()
+            db.session.commit()
+            return make_response("<p>image updated</p>", 201)
+        else:
+            current_app.logger.info("form invalid")
+            current_app.logger.info(form.errors)
+            errors_html = ""
+            for field, error in form.errors.items():
+                errors_html += f"{field}: {', '.join(error)}<br>"
+
+            return make_response(f"<p>{errors_html}</p>", 400)
+
+    return render_template(
+        "image_form.html",
+        image_id=image_id,
+        form_url=f"{current_app.config['EBS_URL']}/element/{element_id}/image/{image_id}/edit",
+        form=form)
+
+    # current_app.logger.info(request.form.get("image"))
+    # current_app.logger.info(request.files)
+    # image = Image.query.filter(
+    #     Image.id == image_id
+    # ).one()
+    # current_app.logger.info(image.id)
+    # file = request.files.get("image")
+    # data = file.read()
+    # image.data = data
+
+    # db.session.commit()
+
+    # response = make_response("<p>Image Updated</p>")
+    # # response.headers["HX-Trigger"] = "closeModal"
+    # response.status_code = 201
+
+    # return response
+
 
 
 # @bp.route("/layouts/<int:layout_id>", methods=["GET"])
@@ -133,7 +234,8 @@ def update_order(channel_id: int, role: str, layout_id: int) -> Response:
 @bp.route("/layout/<int:layout_id>", methods=["GET"])
 @verify.token_required
 def layouts(channel_id: int, role: str, layout_id: int) -> Response:
-
+    current_app.logger.info(session)
+    session["test"] = "test12345"
     # current_app.logger.info(request.args)
     # layout_id = int(request.args.get("id"))
     resp = make_response(get_layout_html(layout_id))
@@ -172,7 +274,8 @@ def test(channel_id: int, role: str, element_id: int) -> Response:
                 id="dialog-form"
                 hx-put="{current_app.config['EBS_URL']}/element/image/{image.id}"
                 hx-encoding="multipart/form-data"
-                hx-swap="none">
+                hx-swap="innerHTML"
+                hx-target="#dialog-status">
                 <label for="image_upload">Upload a new image:</label><br>
                 <input type="file" name="image" form="dialog-form" accept="image/png" /><br><br>
                 <input type="submit" value="Submit">
@@ -182,14 +285,23 @@ def test(channel_id: int, role: str, element_id: int) -> Response:
         text = Text.query.filter(
             Text.element_id == element.id
         ).one()
-        element_form = f"""
-            <div><p>Editing text {text.id}</p></div>
-            <form id="dialog-form">
-                <label for="text-input">text:</label>
-                <input type="text" id="text-input" form="dialog-form" value="{text.text}" /><br><br>
-                <input type="submit" value="Submit">
-            </form><br>
+        #hx-encoding="multipart/form-data"
+        dialog = f"""
+        <dialog hx-swap="innerHTML" hx-trigger="load"  hx-get="{current_app.config['EBS_URL']}/element/text/{text.id}/edit"></dialog>
         """
+        return make_response(dialog)
+        # element_form = f"""
+        #     <div><p>Editing text {text.id}</p></div>
+        #     <form
+        #         id="dialog-form"
+        #         hx-put="{current_app.config['EBS_URL']}/element/text/{text.id}"
+        #         hx-swap="innerHTML"
+        #         hx-target="#dialog-status">
+        #         { text_form.csrf_token }
+        #         { text_form.text.label } { text_form.text(size=20) }
+        #         <input type="submit" value="Submit">
+        #     </form><br>
+        # """
     if element.element_type == ElementType.webhook:
         webhook = Webhook.query.filter(
             Webhook.element_id == element.id
@@ -201,7 +313,8 @@ def test(channel_id: int, role: str, element_id: int) -> Response:
     resp = make_response(f"""
         <dialog>
             {element_form}
-            <button id="cancel-button">Cancel</button>
+            <button id="dialog-close-button">Close</button>
+            <div id="dialog-status"><p> <p></div><br>
         </dialog>
         """)
     return resp
@@ -236,6 +349,17 @@ def get_layout_html(layout_id):
                 Image.element_id == element.id
             ).one()
             image_url = f"{current_app.config['EBS_URL']}/element/image/{image.id}?timestamp={datetime.now().strftime('%s')}"
+            edit_button = f"""
+                <div class='edit-overlay'>
+                    <button
+                        class='edit-button'
+                        type="button"
+                        id="edit-button-{element.id}"
+                        hx-get="{current_app.config['EBS_URL']}/element/{element.id}/image/{image.id}/edit"
+                        hx-target="#dialog"
+                        >Edit</button>
+                </div>
+            """
             entry = f"""
                 <div class='element' id='element-{element.id}'>
                     <input type='hidden' name='element' value='{element.position}'/>
@@ -248,6 +372,17 @@ def get_layout_html(layout_id):
             text = Text.query.filter(
                 Text.element_id == element.id
             ).one()
+            edit_button = f"""
+                <div class='edit-overlay'>
+                    <button
+                        class='edit-button'
+                        type="button"
+                        id="edit-button-{element.id}"
+                        hx-get="{current_app.config['EBS_URL']}/element/{element.id}/text/{text.id}/edit"
+                        hx-target="#dialog"
+                        >Edit</button>
+                </div>
+            """
             entry = f"""
                 <div class='element' id='element-{element.id}'>
                     <input type='hidden' name='element' value='{element.position}'/>

@@ -1,0 +1,14 @@
+<dialog>
+  <div><p>Editing image {{ image_id }}</p></div>
+  <form
+      id="dialog-form"
+      hx-put="{{ form_url }}"
+      hx-swap="innerHTML"
+      hx-encoding="multipart/form-data"
+      hx-target="#dialog-status">
+      {{ form.image.label }} {{ form.image() }}
+      <input type="submit" value="Submit">
+  </form><br>
+  <div id="dialog-status"></div><br>
+  <button id="dialog-close-button">Close</button>
+</dialog>
