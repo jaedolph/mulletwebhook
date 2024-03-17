@@ -96,12 +96,12 @@ img {
     background: rgb(169, 112, 255, 0.5);
 }
 
-#preview > div .edit-overlay .edit-button {
+#preview > div .edit-overlay button {
     display: none;
     opacity: 0;
 }
 
-#preview > div:hover .edit-overlay .edit-button {
+#preview > div:hover .edit-overlay button {
     display: block;
     opacity: 1;
 }

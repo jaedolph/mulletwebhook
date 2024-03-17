@@ -2,7 +2,8 @@
 from dataclasses import dataclass
 
 from mulletwebhook.database import db
-
+from mulletwebhook.models.layout import Layout
+from sqlalchemy.orm import backref
 
 # pylint: disable=invalid-name
 @dataclass
@@ -11,4 +12,4 @@ class Broadcaster(db.Model):  # type: ignore
 
     id: int = db.Column(db.Integer, primary_key=True)
     name: str = db.Column(db.String, nullable=False)
-
+    layouts = db.relationship('Layout', backref=backref('broadcaster', passive_deletes=True), lazy=True)

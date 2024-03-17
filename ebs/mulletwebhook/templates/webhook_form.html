@@ -1,8 +1,8 @@
 <dialog>
     {% if form_type == "edit" %}
-    <div><p>Edit text</p></div>
+    <div><p>Edit webhook</p></div>
     {% else %}
-    <div><p>Create text</p></div>
+    <div><p>Create new webhook</p></div>
     {% endif %}
     <form
         id="dialog-form"
@@ -13,9 +13,12 @@
         {% endif %}
         hx-swap="innerHTML"
         hx-target="#dialog-status">
-        {{ form.text.label }} {{ form.text() }}<br>
+        {{ form.name.label }} {{ form.name() }}<br>
+        {{ form.url.label }} {{ form.url() }}<br>
+        {{ form.bits_product.label }} {{ form.bits_product() }}<br>
+        {{ form.extra_data.label }}<br>{{ form.extra_data(cols="30", rows="10") }}<br>
         <input type="submit" value="Submit">
     </form><br>
     <div id="dialog-status"></div><br>
     <button id="dialog-close-button">Close</button>
-</dialog>
+  </dialog>

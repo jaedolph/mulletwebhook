@@ -1,0 +1,22 @@
+<dialog>
+    <div><p>Choose Element Type</p></div>
+    <button
+        id="image-create-button"
+        hx-get="{{ image_create_url }}"
+        hx-target="#dialog">
+    Image
+    </button>
+    <button
+        id="text-create-button"
+        hx-get="{{ text_create_url }}"
+        hx-target="#dialog">
+    Text
+    </button>
+    <button
+        id="webhook-create-button"
+        hx-get="{{ webhook_create_url }}"
+        hx-target="#dialog">
+    Webhook
+    </button><br><br>
+    <button id="dialog-close-button">Close</button>
+</dialog>

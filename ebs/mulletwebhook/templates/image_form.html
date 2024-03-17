@@ -1,12 +1,20 @@
 <dialog>
-  <div><p>Editing image {{ image_id }}</p></div>
+  {% if form_type == "edit" %}
+  <div><p>Edit image</p></div>
+  {% else %}
+  <div><p>Create new image</p></div>
+  {% endif %}
   <form
       id="dialog-form"
-      hx-put="{{ form_url }}"
+      {% if form_type == "edit" %}
+          hx-put="{{ form_url }}"
+      {% else %}
+          hx-post="{{ form_url }}"
+      {% endif %}
       hx-swap="innerHTML"
       hx-encoding="multipart/form-data"
       hx-target="#dialog-status">
-      {{ form.image.label }} {{ form.image() }}
+      {{ form.image.label }} {{ form.image() }}<br>
       <input type="submit" value="Submit">
   </form><br>
   <div id="dialog-status"></div><br>

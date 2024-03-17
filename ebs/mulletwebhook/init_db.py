@@ -6,7 +6,8 @@ from base64 import b64decode
 
 from mulletwebhook.models.broadcaster import Broadcaster
 from mulletwebhook.models.layout import Layout
-from mulletwebhook.models.element import Element, Image, Text, Webhook, ElementType
+from mulletwebhook.models.element import Element, Image, Text, Webhook, ElementType, BitsProduct
+from mulletwebhook import utils
 
 with open("jaedolph.png", "rb") as image:
     jaedolph_image = image.read()
@@ -26,23 +27,23 @@ def main() -> None:
         db.session.add(layout)
         db.session.commit()
 
-        element1 = Element(element_type=ElementType.image, layout=layout.id, position=0)
+        element1 = Element(element_type=ElementType.image, layout_id=layout.id, position=utils.get_next_layout_position(layout.id))
         db.session.add(element1)
         db.session.commit()
 
-        image = Image(data=jaedolph_image, element_id=element1.id)
+        image = Image(data=jaedolph_image, element_id=element1.id, filename="jaedolph.png")
         db.session.add(image)
         db.session.commit()
 
-        element2 = Element(element_type=ElementType.image, layout=layout.id, position=1)
+        element2 = Element(element_type=ElementType.image, layout_id=layout.id, position=utils.get_next_layout_position(layout.id))
         db.session.add(element2)
         db.session.commit()
 
-        image = Image(data=mullet_image, element_id=element2.id)
+        image = Image(data=mullet_image, element_id=element2.id, filename="mullet.png")
         db.session.add(image)
         db.session.commit()
 
-        element3 = Element(element_type=ElementType.text, layout=layout.id, position=2)
+        element3 = Element(element_type=ElementType.text, layout_id=layout.id, position=utils.get_next_layout_position(layout.id))
         db.session.add(element3)
         db.session.commit()
 
@@ -50,7 +51,7 @@ def main() -> None:
         db.session.add(text)
         db.session.commit()
 
-        element4 = Element(element_type=ElementType.text, layout=layout.id, position=3)
+        element4 = Element(element_type=ElementType.text, layout_id=layout.id, position=utils.get_next_layout_position(layout.id))
         db.session.add(element4)
         db.session.commit()
 
@@ -58,79 +59,63 @@ def main() -> None:
         db.session.add(text)
         db.session.commit()
 
-        element5 = Element(element_type=ElementType.webhook, layout=layout.id, position=4)
+        element5 = Element(element_type=ElementType.webhook, layout_id=layout.id, position=utils.get_next_layout_position(layout.id))
         db.session.add(element5)
         db.session.commit()
 
         webhook = Webhook(
-            text="Tripcraft",
+            name="Tripcraft",
             url="https://api.mixitupapp.com/api/webhook/69589292-d66b-4343-df35-08dc37d3f57c?secret=197B9B3FE10B3239E50D22F4C04D45142E9CC29C8579AE416695054056638D47",
-            data='{"user": "jaedolph", "redeem": "tripcraft"}',
-            bits_product="webhook_1bit",
+            data={"user": "jaedolph", "redeem": "tripcraft"},
+            bits_product=BitsProduct.reward_1bits,
             element_id=element5.id,
         )
 
         db.session.add(webhook)
         db.session.commit()
 
-        element6 = Element(element_type=ElementType.webhook, layout=layout.id, position=5)
+        element6 = Element(element_type=ElementType.webhook, layout_id=layout.id, position=utils.get_next_layout_position(layout.id))
         db.session.add(element6)
         db.session.commit()
 
         webhook = Webhook(
-            text="Tripcraft",
+            name="Tripcraft",
             url="https://api.mixitupapp.com/api/webhook/69589292-d66b-4343-df35-08dc37d3f57c?secret=197B9B3FE10B3239E50D22F4C04D45142E9CC29C8579AE416695054056638D47",
-            data='{"user": "mullet", "redeem": "tripcraft"}',
-            bits_product="webhook_1bit",
+            data={"user": "mullet", "redeem": "tripcraft"},
+            bits_product=BitsProduct.reward_1bits,
             element_id=element6.id,
         )
         db.session.add(webhook)
         db.session.commit()
 
-        element7 = Element(element_type=ElementType.webhook, layout=layout.id, position=6)
+        element7 = Element(element_type=ElementType.webhook, layout_id=layout.id, position=utils.get_next_layout_position(layout.id))
         db.session.add(element7)
         db.session.commit()
 
 
         webhook = Webhook(
-            text="Invert Screen",
+            name="Invert Screen",
             url="https://api.mixitupapp.com/api/webhook/69589292-d66b-4343-df35-08dc37d3f57c?secret=197B9B3FE10B3239E50D22F4C04D45142E9CC29C8579AE416695054056638D47",
-            data='{"user": "jaedolph", "redeem": "invert_screen"}',
-            bits_product="webhook_1bit",
+            data={"user": "jaedolph", "redeem": "invert_screen"},
+            bits_product=BitsProduct.reward_1bits,
             element_id=element7.id,
         )
 
         db.session.add(webhook)
         db.session.commit()
 
-        element8 = Element(element_type=ElementType.webhook, layout=layout.id, position=7)
+        element8 = Element(element_type=ElementType.webhook, layout_id=layout.id, position=utils.get_next_layout_position(layout.id))
         db.session.add(element8)
         db.session.commit()
 
         webhook = Webhook(
-            text="Invert Screen",
+            name="Invert Screen",
             url="https://api.mixitupapp.com/api/webhook/69589292-d66b-4343-df35-08dc37d3f57c?secret=197B9B3FE10B3239E50D22F4C04D45142E9CC29C8579AE416695054056638D47",
-            data='{"user": "mullet", "redeem": "invert_screen"}',
-            bits_product="webhook_1bit",
+            data={"user": "mullet", "redeem": "invert_screen"},
+            bits_product=BitsProduct.reward_1bits,
             element_id=element8.id,
         )
         db.session.add(webhook)
-        db.session.commit()
-
-        element9 = Element(element_type=ElementType.image, layout=layout.id, position=8)
-        db.session.add(element9)
-        db.session.commit()
-
-        image = Image(data=jaedolph_image, element_id=element9.id)
-        db.session.add(image)
-        db.session.commit()
-
-        element10 = Element(element_type=ElementType.image, layout=layout.id, position=9)
-        db.session.add(element10)
-        db.session.commit()
-
-        image = Image(data=mullet_image, element_id=element10.id)
-        db.session.add(image)
         db.session.commit()
 
 

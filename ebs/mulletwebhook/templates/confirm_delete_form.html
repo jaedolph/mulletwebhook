@@ -1,0 +1,12 @@
+<dialog>
+    <div><p>Are you sure you want to delete this {{ element_type }} element?<br>({{element_name}})</p></div>
+    <button
+        id="confirm-delete-button"
+        hx-delete="{{ element_delete_url }}"
+        hx-swap="innerHTML"
+        hx-target="#dialog-status">
+    Yes
+    </button>
+    <button id=dialog-close-button>No</button>
+    <div id="dialog-status"></div><br>
+</dialog>

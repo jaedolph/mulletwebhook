@@ -57,6 +57,7 @@ htmx.on("htmx:afterSwap", (e) => {
 
 })
 
+
 // document.body.addEventListener("closeModal", function(event) {
 
 //     console.log("closing modal")
