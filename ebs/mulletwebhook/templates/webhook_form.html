@@ -17,6 +17,9 @@
         {{ form.url.label }} {{ form.url() }}<br>
         {{ form.bits_product.label }} {{ form.bits_product() }}<br>
         {{ form.extra_data.label }}<br>{{ form.extra_data(cols="30", rows="10") }}<br>
+        {{ form.include_transaction_data.label }} {{ form.include_transaction_data() }}<br><br>
+        {{ form.test_webhook() }}<br>
+        <p id="webhook-test-status"></p><br>
         <input type="submit" value="Submit">
     </form><br>
     <div id="dialog-status"></div><br>

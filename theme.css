@@ -1,7 +1,8 @@
-/* body {
+body {
     font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif';
     line-height: 19.5px;
     color: rgb(14, 14, 16);
+    margin: 0px;
 }
 
 p {
@@ -19,7 +20,7 @@ h3 {
     font-size: 24px;
 }
 
-blockquote {
+/* blockquote {
     border-left-color: rgb(169, 112, 255);
     border-left-style: solid;
     border-left-width: 2.4px;
@@ -37,8 +38,8 @@ blockquote p {
     overflow-x: hidden;
 }
 
+ */
 
-*/
 
 
 
@@ -46,8 +47,11 @@ blockquote p {
     display: grid;
     grid-template-columns: 150px 150px;
     align-content: center;
-    gap: 5px;
+    row-gap: 10px;
+    column-gap: 5px;
     padding: 5px;
+    overflow: scroll;
+    overflow-x: hidden;
 }
 
 #preview-window {
@@ -59,7 +63,7 @@ blockquote p {
     overflow-x: hidden;
 }
 
-img {
+.element > img {
     width: 140px;
     object-fit: scale-down;
 }
@@ -71,12 +75,22 @@ img {
     width: 50%;
 }
 
+.webhook-button {
+    width: 140px;
+    position:relative;
+    padding: 10px;
+    background-color: gray;
+}
+
 #preview {
     position: relative;
 }
 
 .element {
     position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .add-new-div {

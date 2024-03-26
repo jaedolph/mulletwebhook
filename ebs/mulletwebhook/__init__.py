@@ -13,14 +13,20 @@ logging.basicConfig(
 )
 
 
-
 def create_app(config_class: type = Config) -> Flask:
 
     app = Flask(__name__)
     CORS(app)
 
     app.config.from_object(config_class)
-    app.logger.setLevel("DEBUG")
+
+    # set log level
+    try:
+        app.logger.setLevel(app.config["LOG_LEVEL"])
+    except ValueError as exp:
+        app.logger.error("error setting log level: %s", exp)
+        sys.exit(1)
+
 
     # initialize database
     db.init_app(app)

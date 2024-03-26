@@ -6,7 +6,9 @@ import base64
 import jwt
 from flask import Request, current_app, abort
 from flask import request as flask_request
-
+from mulletwebhook.models.broadcaster import Broadcaster
+from mulletwebhook.models.layout import Layout
+from mulletwebhook.models.element import Element, Image, Text, Webhook
 
 R = TypeVar("R")
 
@@ -36,6 +38,74 @@ def token_required(func: Callable[[int, str], R]) -> Callable[[int, str], R]:
             "authenticated request for channel_id=%s role=%s", channel_id, role
         )
         return func(*args, channel_id=channel_id, role=role, **kwargs)
+    return cast(Callable[[int, str], R], decorated_function)
+
+
+def owned_by_broadcaster(func: Callable[[int, str], R]) -> Callable[[int, str], R]:
+    """
+    """
+
+    @wraps(func)
+    def decorated_function(*args, **kwargs) -> R:
+
+        current_app.logger.info(kwargs)
+
+        channel_id = kwargs["channel_id"]
+
+        if "layout_id" in kwargs:
+            layout_id = kwargs["layout_id"]
+            layout = Layout.query.filter(
+                Layout.id == layout_id
+            ).one()
+            if layout.broadcaster.id != channel_id:
+                return abort(401, f"layout with id={layout_id} is not owned by broadcaster={layout.broadcaster.name}")
+
+        if "element_id" in kwargs:
+            element_id = kwargs["element_id"]
+            element = Element.query.filter(
+                Element.id == element_id
+            ).one()
+            if element.layout.broadcaster.id != channel_id:
+                return abort(401, f"element with id={element_id} is not owned by broadcaster={element.layout.broadcaster.name}")
+
+        if "image_id" in kwargs:
+            image_id = kwargs["image_id"]
+            image = Image.query.filter(
+                Image.id == image_id
+            ).one()
+            if image.element.layout.broadcaster.id != channel_id:
+                return abort(401, f"image with id={image_id} is not owned by broadcaster={image.element.layout.broadcaster.name}")
+
+        if "text_id" in kwargs:
+            text_id = kwargs["text_id"]
+            text = Text.query.filter(
+                Text.id == text_id
+            ).one()
+            if text.element.layout.broadcaster.id != channel_id:
+                return abort(401, f"text with id={text_id} is not owned by broadcaster={text.element.layout.broadcaster.name}")
+
+        if "webhook_id" in kwargs:
+            webhook_id = kwargs["webhook_id"]
+            webhook = Webhook.query.filter(
+                Webhook.id == webhook_id
+            ).one()
+            if webhook.element.layout.broadcaster.id != channel_id:
+                return abort(401, f"webhook with id={webhook_id} is not owned by broadcaster={webhook.element.layout.broadcaster.name}")
+
+        return func(*args, **kwargs)
+    return cast(Callable[[int, str], R], decorated_function)
+
+def is_broadcaster(func: Callable[[int, str], R]) -> Callable[[int, str], R]:
+    """
+    """
+
+    @wraps(func)
+    def decorated_function(*args, **kwargs) -> R:
+        current_app.logger.info("role=%s", kwargs["role"])
+        if kwargs["role"] != "broadcaster":
+            abort(403, "user role is not broadcaster")
+
+        return func(*args, **kwargs)
     return cast(Callable[[int, str], R], decorated_function)
 
 

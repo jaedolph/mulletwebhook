@@ -1,5 +1,3 @@
-// The "Verified First Chatters" panel displayed to viewers
-
 'use strict'
 import { twitch, extensionUri } from './globals.js'
 
@@ -9,79 +7,38 @@ let authorization
 twitch.onAuthorized(function (auth) {
   authorization = 'Bearer ' + auth.token
   console.log('bits enabled: ' + twitch.features.isBitsEnabled)
-
-  //twitch.bits.setUseLoopback(true)
 })
 
-await renderLayout()
+twitch.listen("broadcast", function (target, contentType, message) {
+  console.log(`target ${target} contentType ${contentType} message ${message}`)
 
-async function getLayout(layout) {
-  console.debug("layout")
-  const response = await fetch(
-    extensionUri + `/layouts/${layout}`, {
-      method: "GET",
-    }
-  )
+  if (message === "refresh") {
+    // refresh after a random interval between 0-5s (to reduce ebs load)
+    setTimeout(function () {
+      htmx.trigger("#layout-div", "refresh")
+    }, Math.floor(Math.random() * 5000))
+  }
+})
 
-  const layout_resp = await response.json()
-  console.debug(layout_resp)
-  return layout_resp
-}
-
-async function renderLayout () {
-
-  const layout = getLayout(1)
-
-  const elements = layout["elements"]
-  let webhooks = []
-  const panelTitle = document.getElementById('panelTitle')
-  panelTitle.innerHTML = layout["layout"]["title"]
-  const mainPanel = document.getElementById('mainPanel')
-  let pannelInner = ""
-  for (const index in elements){
-
-    const element = elements[index]
-    console.log(element)
-    const element_type = element["type"]
-    console.log(element_type)
-    if (element_type == "image") {
-      const element_id = element["id"]
-      pannelInner += `<div><img src="${extensionUri}/image/${element_id}"></div>`
-    }
-    if (element_type == "text") {
-      const text = element["text"]["text"]
-      pannelInner += `<div><p>${text}</p></div>`
-    }
-    if (element_type == "webhook") {
-      const text = element["webhook"]["text"]
-      pannelInner += `<div><button id="element${index}">1 <img src="bit.gif" width="28" height="28"> ${text} </button></div>`
-      webhooks.push({
-        "html_id": `element${index}`,
-        "element": element,
-      })
+htmx.on("htmx:afterSwap", (e) => {
+  console.log("swap")
+  // Response targeting #dialog => show the modal
+  if (e.detail.target.id == "layout-div") {
+    var webhookButtons = document.querySelectorAll(".webhook-button");
+    for (var i = 0; i < webhookButtons.length; i++) {
+      var webhookButton = webhookButtons[i];
+      const webhookID = webhookButton.getAttribute("data-id")
+      const webhookBitsProduct = webhookButton.getAttribute("data-product")
+      webhookButton.addEventListener(
+        "click",
+        async function () {
+          webhookRedeem(webhookID, webhookBitsProduct)
+        },
+        false,
+      )
     }
   }
-
-  mainPanel.innerHTML = pannelInner
-  for (const index in webhooks){
-    const webhook = webhooks[index]
-    console.log(webhook)
-    const webhookElement = document.getElementById(webhook["html_id"])
-    const webhookID = webhook["element"]["webhook"]["id"]
-    console.log(webhookID)
-    const webhookBitsProduct = webhook["element"]["webhook"]["bits_product"]
-    console.log(webhookBitsProduct)
-    webhookElement.addEventListener(
-      "click",
-      async function () {
-        webhookRedeem(webhookID, webhookBitsProduct)
-      },
-      false,
-    )
-  }
-
-}
-
+})
 
 async function webhookRedeem (webhookID, webhookBitsProduct) {
   console.log(webhookID)
@@ -95,13 +52,13 @@ async function webhookRedeem (webhookID, webhookBitsProduct) {
     const tx = await bitsTransaction;
 
     const response = await fetch(
-      extensionUri + '/webhook', {
+      extensionUri + '/webhook/' + webhookID, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json',
           Authorization: authorization
         },
-        body: JSON.stringify({"webhook_id": webhookID, "transaction": tx})
+        body: JSON.stringify({"transaction": tx})
       }
     )
     console.log("test")

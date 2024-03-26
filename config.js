@@ -75,12 +75,18 @@ htmx.on("htmx:beforeSwap", (e) => {
   if (e.detail.target.id == "dialog-status") {
 
       if (e.detail.shouldSwap){
-        // close the dialog after the success message has been shown for 1s
-        console.log("closing")
-        const dialog = document.querySelector("dialog")
-        setTimeout(() => {
-          dialog.close()
-        }, 1000)
+        // workaround to ensure the dialog doesn't close after the webhook is tested
+        const close_dialog = (e.detail.serverResponse !== "<p>Webhook OK</p>")
+
+        if (close_dialog) {
+          // close the dialog after the success message has been shown for 0.5s
+          console.log("closing")
+          const dialog = document.querySelector("dialog")
+          setTimeout(() => {
+            dialog.close()
+          }, 500)
+        }
+
       } else {
         console.log(e.detail)
         // Show the error message on a non-200 response

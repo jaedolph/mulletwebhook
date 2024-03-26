@@ -6,7 +6,9 @@ from base64 import b64decode
 
 from mulletwebhook.models.broadcaster import Broadcaster
 from mulletwebhook.models.layout import Layout
-from mulletwebhook.models.element import Element, Image, Text, Webhook, ElementType, BitsProduct
+from mulletwebhook.models.element import Element, Image, Text, Webhook
+from mulletwebhook.models.enums import ElementType, BitsProduct
+
 from mulletwebhook import utils
 
 with open("jaedolph.png", "rb") as image:
@@ -64,7 +66,7 @@ def main() -> None:
         db.session.commit()
 
         webhook = Webhook(
-            name="Tripcraft",
+            name="Tripcraft (Jaedolph)",
             url="https://api.mixitupapp.com/api/webhook/69589292-d66b-4343-df35-08dc37d3f57c?secret=197B9B3FE10B3239E50D22F4C04D45142E9CC29C8579AE416695054056638D47",
             data={"user": "jaedolph", "redeem": "tripcraft"},
             bits_product=BitsProduct.reward_1bits,
@@ -79,7 +81,7 @@ def main() -> None:
         db.session.commit()
 
         webhook = Webhook(
-            name="Tripcraft",
+            name="Tripcraft (Mullet)",
             url="https://api.mixitupapp.com/api/webhook/69589292-d66b-4343-df35-08dc37d3f57c?secret=197B9B3FE10B3239E50D22F4C04D45142E9CC29C8579AE416695054056638D47",
             data={"user": "mullet", "redeem": "tripcraft"},
             bits_product=BitsProduct.reward_1bits,
@@ -94,7 +96,7 @@ def main() -> None:
 
 
         webhook = Webhook(
-            name="Invert Screen",
+            name="Invert Screen (Jaedolph)",
             url="https://api.mixitupapp.com/api/webhook/69589292-d66b-4343-df35-08dc37d3f57c?secret=197B9B3FE10B3239E50D22F4C04D45142E9CC29C8579AE416695054056638D47",
             data={"user": "jaedolph", "redeem": "invert_screen"},
             bits_product=BitsProduct.reward_1bits,
@@ -109,7 +111,7 @@ def main() -> None:
         db.session.commit()
 
         webhook = Webhook(
-            name="Invert Screen",
+            name="Invert Screen (Mullet)",
             url="https://api.mixitupapp.com/api/webhook/69589292-d66b-4343-df35-08dc37d3f57c?secret=197B9B3FE10B3239E50D22F4C04D45142E9CC29C8579AE416695054056638D47",
             data={"user": "mullet", "redeem": "invert_screen"},
             bits_product=BitsProduct.reward_1bits,
