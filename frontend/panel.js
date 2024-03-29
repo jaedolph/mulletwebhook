@@ -15,7 +15,7 @@ twitch.listen("broadcast", function (target, contentType, message) {
   if (message === "refresh") {
     // refresh after a random interval between 0-5s (to reduce ebs load)
     setTimeout(function () {
-      htmx.trigger("#layout-div", "refresh")
+      htmx.trigger("#layout-loader", "refresh")
     }, Math.floor(Math.random() * 5000))
   }
 })
@@ -23,7 +23,7 @@ twitch.listen("broadcast", function (target, contentType, message) {
 htmx.on("htmx:afterSwap", (e) => {
   console.log("swap")
   // Response targeting #dialog => show the modal
-  if (e.detail.target.id == "layout-div") {
+  if (e.detail.target.id == "layout") {
     var webhookButtons = document.querySelectorAll(".webhook-button");
     for (var i = 0; i < webhookButtons.length; i++) {
       var webhookButton = webhookButtons[i];

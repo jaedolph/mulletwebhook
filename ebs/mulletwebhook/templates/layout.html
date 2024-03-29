@@ -1,0 +1,23 @@
+
+<div id="layout">
+<h3>{{ title }}</h3>
+{% if edit %}
+<form
+{% else %}
+<div
+{% endif %}
+    id="preview"
+    class="grid-container"
+    hx-post="{{ ebs_url }}/layout/1/update-order"
+    hx-trigger="end, layoutUpdate"
+    hx-target="#layout"
+    hx-indicator="#loader">
+{%- for element in elements_list %}
+    {{ element |safe }}
+{% endfor %}
+{% if edit %}
+</form>
+{% else %}
+<div
+{% endif %}
+</div>

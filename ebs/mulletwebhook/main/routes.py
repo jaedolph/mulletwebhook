@@ -7,6 +7,7 @@ import textwrap
 import re
 from typing import Any
 from uuid import uuid4
+import time
 
 from flask import Blueprint, Response, abort, jsonify, make_response, request, current_app, render_template
 from flask_wtf import FlaskForm
@@ -133,7 +134,7 @@ def text_edit(channel_id: int, role: str, element_id: int, text_id: int) -> Resp
             text.text = form.text.data
             db.session.commit()
             twitch.send_refresh_pubsub(channel_id)
-            return make_response("<p>text updated</p>", 201)
+            return make_response("<p class='success-message'>Text updated</p>", 201)
         else:
             current_app.logger.info("form invalid")
             current_app.logger.info(form.errors)
@@ -141,7 +142,7 @@ def text_edit(channel_id: int, role: str, element_id: int, text_id: int) -> Resp
             for field, error in form.errors.items():
                 errors_html += f"{field}: {', '.join(error)}<br>"
 
-            return make_response(f"<p>{errors_html}</p>", 400)
+            return make_response(f"<p class='error-message'>{errors_html}</p>", 400)
 
     if request.method == "GET":
         form.text.data = text.text
@@ -175,7 +176,7 @@ def text_create(channel_id: int, role: str, layout_id: int) -> Response:
             utils.ensure_layout_order(layout_id)
 
             twitch.send_refresh_pubsub(channel_id)
-            return make_response("<p>text created</p>", 200)
+            return make_response("<p class='success-message'>Text created</p>", 200)
         else:
             current_app.logger.info("form invalid")
             current_app.logger.info(form.errors)
@@ -183,7 +184,7 @@ def text_create(channel_id: int, role: str, layout_id: int) -> Response:
             for field, error in form.errors.items():
                 errors_html += f"{field}: {', '.join(error)}<br>"
 
-            return make_response(f"<p>{errors_html}</p>", 400)
+            return make_response(f"<p class='error-message'>{errors_html}</p>", 400)
 
     return render_template(
         "text_form.html",
@@ -212,7 +213,7 @@ def image_edit(channel_id: int, role: str, element_id: int, image_id: int) -> Re
             image.filename = form.image.data.filename
             db.session.commit()
             twitch.send_refresh_pubsub(channel_id)
-            return make_response("<p>image updated</p>", 201)
+            return make_response("<p class='success-message'>Image updated</p>", 201)
         else:
             current_app.logger.info("form invalid")
             current_app.logger.info(form.errors)
@@ -220,7 +221,7 @@ def image_edit(channel_id: int, role: str, element_id: int, image_id: int) -> Re
             for field, error in form.errors.items():
                 errors_html += f"{field}: {', '.join(error)}<br>"
 
-            return make_response(f"<p>{errors_html}</p>", 400)
+            return make_response(f"<p class='error-message'>{errors_html}</p>", 400)
 
     return render_template(
         "image_form.html",
@@ -251,7 +252,7 @@ def image_create(channel_id: int, role: str, layout_id: int) -> Response:
 
             twitch.send_refresh_pubsub(channel_id)
 
-            return make_response("<p>image created</p>", 200)
+            return make_response("<p class='success-message'>Image created</p>", 200)
         else:
             current_app.logger.info("form invalid")
             current_app.logger.info(form.errors)
@@ -259,7 +260,7 @@ def image_create(channel_id: int, role: str, layout_id: int) -> Response:
             for field, error in form.errors.items():
                 errors_html += f"{field}: {', '.join(error)}<br>"
 
-            return make_response(f"<p>{errors_html}</p>", 400)
+            return make_response(f"<p class='error-message'>{errors_html}</p>", 400)
 
     return render_template(
         "image_form.html",
@@ -331,8 +332,8 @@ def webhook_edit(channel_id: int, role: str, element_id: int, webhook_id: int) -
                 try:
                     test_webhook(form)
                 except requests.RequestException as exp:
-                    return make_response(f"<p>Webhook failed</p>", 500)
-                return make_response(f"<p>Webhook OK</p>")
+                    return make_response(f"<p class='error-message'>Webhook failed</p>", 500)
+                return make_response(f"<p class='success-message'>Webhook OK</p>")
 
             webhook.url = form.url.data
             webhook.name = form.name.data
@@ -340,7 +341,7 @@ def webhook_edit(channel_id: int, role: str, element_id: int, webhook_id: int) -
             webhook.data = json.loads(form.extra_data.data)
             db.session.commit()
             twitch.send_refresh_pubsub(channel_id)
-            return make_response("<p>webhook updated</p>", 201)
+            return make_response("<p class='success-message'>Webhook updated</p>", 201)
         else:
             current_app.logger.info("form invalid")
             current_app.logger.info(form.errors)
@@ -348,7 +349,7 @@ def webhook_edit(channel_id: int, role: str, element_id: int, webhook_id: int) -
             for field, error in form.errors.items():
                 errors_html += f"{field}: {', '.join(error)}<br>"
 
-            return make_response(f"<p>{errors_html}</p>", 400)
+            return make_response(f"<p class='error-message'>{errors_html}</p>", 400)
 
     if request.method == "GET":
         form.name.data = webhook.name
@@ -381,9 +382,8 @@ def webhook_create(channel_id: int, role: str, layout_id: int) -> Response:
                 try:
                     test_webhook(form)
                 except requests.RequestException as exp:
-                    return make_response(f"<p>Webhook failed</p>", 500)
-
-                return make_response(f"<p>Webhook OK</p>")
+                    return make_response(f"<p class='error-message'>Webhook failed</p>", 500)
+                return make_response(f"<p class='success-message'>Webhook OK</p>")
 
             element = Element(layout_id=layout_id, element_type=ElementType.webhook, position=utils.get_next_layout_position(layout_id))
             db.session.add(element)
@@ -401,7 +401,7 @@ def webhook_create(channel_id: int, role: str, layout_id: int) -> Response:
             utils.ensure_layout_order(layout_id)
             twitch.send_refresh_pubsub(channel_id)
 
-            return make_response("<p>webhook created</p>", 200)
+            return make_response("<p class='success-message'>Webhook created</p>", 200)
         else:
             current_app.logger.info("form invalid")
             current_app.logger.info(form.errors)
@@ -409,7 +409,7 @@ def webhook_create(channel_id: int, role: str, layout_id: int) -> Response:
             for field, error in form.errors.items():
                 errors_html += f"{field}: {', '.join(error)}<br>"
 
-            return make_response(f"<p>{errors_html}</p>", 400)
+            return make_response(f"<p class='error-message'>{errors_html}</p>", 400)
 
     if request.method == "GET":
         form.extra_data.data = "{}"
@@ -619,4 +619,10 @@ def get_layout_html(layout_id: int, edit: bool) -> str:
         """
         elements_list.append(add_new_button)
 
-    return "\n".join(elements_list)
+    return render_template(
+        "layout.html",
+        title=layout.title,
+        ebs_url=current_app.config["EBS_URL"],
+        edit=edit,
+        elements_list=elements_list,
+    )

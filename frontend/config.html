@@ -12,24 +12,15 @@
   <body id="root">
     <button hx-get="https://mulletwebhook-test.hv1.jaedolph.net/layout/1?edit=true"
     hx-trigger="click"
-    hx-target="#preview"
-    hx-swap="innerHTML"
-    hx-include
+    hx-target="#layout"
+    hx-indicator="#loader"
     >
     Preview layout
     </button>
+    <div id="loader" class="htmx-indicator"><p>Loading...</p></div>
     <div id="preview-window">
-      <form
-        id="preview"
-        class="grid-container"
-        hx-post="https://mulletwebhook-test.hv1.jaedolph.net/layout/1/update-order"
-        hx-trigger="end, layoutUpdate"></form>
+    <div id="layout"></div>
     </div>
-    <button
-      hx-post="https://mulletwebhook-test.hv1.jaedolph.net/layout"
-      hx-prompt="Enter name for layout">
-        New Layout
-    </button>
     <div id="dialog"></div>
     <noscript>
       You need to enable JavaScript to run this app.
