@@ -10,7 +10,7 @@
 <html>
   <body id="root">
 
-    <div id="layout-loader" hidden hx-trigger="load,refresh" hx-get="https://mulletwebhook-test.hv1.jaedolph.net/layout/1" hx-target="#layout" hx-indicator="#loader"></div>
+    <div id="layout-loader" hidden hx-trigger="authed,refresh" hx-get="https://mulletwebhook-test.jaedolph.net/layout" hx-target="#layout" hx-indicator="#loader"></div>
     <div id="layout"></div>
     <div id="loader" class="htmx-indicator"><p class="centered">Loading...</p></div>
     </div>

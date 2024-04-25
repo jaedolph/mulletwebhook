@@ -22,10 +22,12 @@ def main() -> None:
     with create_app().app_context():
         db.drop_all()
         db.create_all()
-        broadcaster = Broadcaster(id=25819608,name="jaedolph")
+
+        # broadcaster = Broadcaster(id=25819608,name="jaedolph", current_layout=1, editing_layout=1)
+        broadcaster = Broadcaster(id=26391369,name="80smullet", current_layout=1, editing_layout=1)
         db.session.add(broadcaster)
 
-        layout = Layout(name="my layout",title="Jaedolph v Mullet", broadcaster_id=broadcaster.id, columns=2)
+        layout = Layout(name="example layout",title="Jaedolph v Mullet", broadcaster_id=broadcaster.id)
         db.session.add(layout)
         db.session.commit()
 

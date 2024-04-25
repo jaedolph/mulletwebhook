@@ -1,0 +1,24 @@
+<dialog>
+    {% if form_type == "edit" %}
+    <div><p>Edit layout</p></div>
+    {% else %}
+    <div><p>Create new layout</p></div>
+    {% endif %}
+    <form
+        id="dialog-form"
+        {% if form_type == "edit" %}
+            hx-put="{{ form_url }}"
+        {% else %}
+            hx-post="{{ form_url }}"
+        {% endif %}
+        hx-swap="innerHTML"
+        hx-encoding="multipart/form-data"
+        hx-target="#dialog-status">
+        {{ form.name.label }} {{ form.name() }}<br>
+        {{ form.title.label }} {{ form.title() }}<br>
+        {{ form.show_title.label }} {{ form.show_title() }}<br><br>
+        <input type="submit" value="Submit">
+    </form><br>
+    <div id="dialog-status"></div><br>
+    <button id="dialog-close-button">Cancel</button>
+</dialog>

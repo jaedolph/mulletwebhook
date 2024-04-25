@@ -12,7 +12,7 @@ class Layout(db.Model):  # type: ignore
 
     id: int = db.Column(db.Integer, primary_key=True)
     name: str = db.Column(db.String, nullable=False)
-    title: str = db.Column(db.String, nullable=False)
+    title: str = db.Column(db.String)
+    show_title = db.Column(db.Boolean, default=True)
     broadcaster_id: int = db.Column(db.Integer, db.ForeignKey('broadcaster.id', ondelete='CASCADE'), nullable=False)
-    columns: int = db.Column(db.Integer, nullable=False)
     elements = db.relationship('Element', backref=backref("layout", passive_deletes=True), lazy=True)

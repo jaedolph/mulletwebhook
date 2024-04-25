@@ -1,6 +1,8 @@
 
 <div id="layout">
+{% if show_title %}
 <h3>{{ title }}</h3>
+{% endif %}
 {% if edit %}
 <form
 {% else %}
@@ -8,8 +10,8 @@
 {% endif %}
     id="preview"
     class="grid-container"
-    hx-post="{{ ebs_url }}/layout/1/update-order"
-    hx-trigger="end, layoutUpdate"
+    hx-post="{{ update_order_url }}"
+    hx-trigger="end, layoutUpdate from:body"
     hx-target="#layout"
     hx-indicator="#loader">
 {%- for element in elements_list %}

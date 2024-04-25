@@ -7,6 +7,12 @@ let authorization
 twitch.onAuthorized(function (auth) {
   authorization = 'Bearer ' + auth.token
   console.log('bits enabled: ' + twitch.features.isBitsEnabled)
+  htmx.trigger("#layout-loader", "authed")
+})
+
+// add the auth token to the request as a header
+htmx.on("htmx:configRequest", (e)=> {
+  e.detail.headers["Authorization"] = authorization
 })
 
 twitch.listen("broadcast", function (target, contentType, message) {

@@ -64,6 +64,17 @@ class WebhookForm(FlaskForm):
     extra_data = StringField('data', validators=[DataRequired(), Length(min=1, max=2000), validate_is_json], widget=TextArea())
     test_webhook = SubmitField("Test Webhook")
 
+class LayoutForm(FlaskForm):
+    name = StringField(validators=[DataRequired(), Length(min=1, max=100)])
+    title = StringField(validators=[Length(min=0, max=26)])
+    show_title = BooleanField("show title")
+
+class LayoutSelectForm(FlaskForm):
+    layouts = SelectField("Select Layout", choices=[])
+    edit = SubmitField("Edit Title")
+    make_active = SubmitField("Activate")
+    delete = SubmitField("Delete Layout")
+
 @bp.route("/webhook/<int:webhook_id>", methods=["POST"])
 @verify.token_required
 @verify.owned_by_broadcaster
@@ -92,7 +103,8 @@ def redeem(channel_id: int, role: str, webhook_id: int) -> Response:
     # current_app.logger.info("data: %s", data)
 
     webhook_data = webhook.data
-    webhook_data["transaction"] = transaction
+    if webhook.include_transaction_data:
+        webhook_data["transaction"] = transaction
 
     req = requests.post(webhook.url, json=webhook_data)
     req.raise_for_status()
@@ -134,7 +146,13 @@ def text_edit(channel_id: int, role: str, element_id: int, text_id: int) -> Resp
             text.text = form.text.data
             db.session.commit()
             twitch.send_refresh_pubsub(channel_id)
-            return make_response("<p class='success-message'>Text updated</p>", 201)
+
+
+            resp = make_response("<p class='success-message'>Text updated</p>", 201)
+            resp.headers["HX-Trigger-After-Swap"] = "layoutUpdate"
+            resp.headers["Access-Control-Expose-Headers"] = "*"
+
+            return
         else:
             current_app.logger.info("form invalid")
             current_app.logger.info(form.errors)
@@ -176,7 +194,11 @@ def text_create(channel_id: int, role: str, layout_id: int) -> Response:
             utils.ensure_layout_order(layout_id)
 
             twitch.send_refresh_pubsub(channel_id)
-            return make_response("<p class='success-message'>Text created</p>", 200)
+
+            resp = make_response("<p class='success-message'>Text created</p>", 200)
+            resp.headers["HX-Trigger-After-Swap"] = "layoutUpdate"
+            resp.headers["Access-Control-Expose-Headers"] = "*"
+            return resp
         else:
             current_app.logger.info("form invalid")
             current_app.logger.info(form.errors)
@@ -213,7 +235,11 @@ def image_edit(channel_id: int, role: str, element_id: int, image_id: int) -> Re
             image.filename = form.image.data.filename
             db.session.commit()
             twitch.send_refresh_pubsub(channel_id)
-            return make_response("<p class='success-message'>Image updated</p>", 201)
+
+            resp = make_response("<p class='success-message'>Image updated</p>", 201)
+            resp.headers["HX-Trigger-After-Swap"] = "layoutUpdate"
+            resp.headers["Access-Control-Expose-Headers"] = "*"
+            return resp
         else:
             current_app.logger.info("form invalid")
             current_app.logger.info(form.errors)
@@ -252,7 +278,11 @@ def image_create(channel_id: int, role: str, layout_id: int) -> Response:
 
             twitch.send_refresh_pubsub(channel_id)
 
-            return make_response("<p class='success-message'>Image created</p>", 200)
+            resp = make_response("<p class='success-message'>Image created</p>", 200)
+            resp.headers["HX-Trigger-After-Swap"] = "layoutUpdate"
+            resp.headers["Access-Control-Expose-Headers"] = "*"
+
+            return resp
         else:
             current_app.logger.info("form invalid")
             current_app.logger.info(form.errors)
@@ -341,7 +371,10 @@ def webhook_edit(channel_id: int, role: str, element_id: int, webhook_id: int) -
             webhook.data = json.loads(form.extra_data.data)
             db.session.commit()
             twitch.send_refresh_pubsub(channel_id)
-            return make_response("<p class='success-message'>Webhook updated</p>", 201)
+            resp = make_response("<p class='success-message'>Webhook updated</p>", 201)
+            resp.headers["HX-Trigger-After-Swap"] = "layoutUpdate"
+            resp.headers["Access-Control-Expose-Headers"] = "*"
+            return resp
         else:
             current_app.logger.info("form invalid")
             current_app.logger.info(form.errors)
@@ -401,7 +434,10 @@ def webhook_create(channel_id: int, role: str, layout_id: int) -> Response:
             utils.ensure_layout_order(layout_id)
             twitch.send_refresh_pubsub(channel_id)
 
-            return make_response("<p class='success-message'>Webhook created</p>", 200)
+            resp = make_response("<p class='success-message'>Webhook created</p>", 200)
+            resp.headers["HX-Trigger-After-Swap"] = "layoutUpdate"
+            resp.headers["Access-Control-Expose-Headers"] = "*"
+            return resp
         else:
             current_app.logger.info("form invalid")
             current_app.logger.info(form.errors)
@@ -441,7 +477,30 @@ def element_delete(channel_id: int, role: str, element_id: int) -> Response:
 
     twitch.send_refresh_pubsub(channel_id)
 
-    return make_response("<p>Element deleted</p>")
+    resp = make_response("<p>Element deleted</p>")
+    resp.headers["HX-Trigger-After-Swap"] = "layoutUpdate"
+    resp.headers["Access-Control-Expose-Headers"] = "*"
+    return resp
+
+@bp.route("/layout/<int:layout_id>", methods=["DELETE"])
+@verify.token_required
+@verify.is_broadcaster
+@verify.owned_by_broadcaster
+def layout_delete(channel_id: int, role: str, layout_id: int) -> Response:
+    current_app.logger.info("layout_id=%s",layout_id)
+
+    layout = Layout.query.filter(
+        Layout.id == layout_id
+    ).one()
+    db.session.delete(layout)
+    db.session.commit()
+
+    twitch.send_refresh_pubsub(channel_id)
+    resp = make_response("<p>Layout deleted</p>")
+    resp.headers["HX-Trigger-After-Swap"] = "layoutUpdate, selectRefresh"
+    resp.headers["Access-Control-Expose-Headers"] = "*"
+    return resp
+
 
 @bp.route("/element/<int:element_id>/confirm-delete", methods=["GET", "DELETE"])
 @verify.token_required
@@ -462,8 +521,25 @@ def element_confirm_delete(channel_id: int, role: str, element_id: int) -> Respo
     if element.element_type == ElementType.webhook:
         element_name = element.webhook.name
 
-    element_delete_url = f"{current_app.config['EBS_URL']}/element/{element_id}"
-    return render_template("confirm_delete_form.html", element_delete_url=element_delete_url, element_type=element.element_type.name, element_name=element_name)
+    delete_url = f"{current_app.config['EBS_URL']}/element/{element_id}"
+    delete_prompt = f"Are you sure you want to delete this {element.element_type.name} element?<br>({element_name})"
+    return render_template("confirm_delete_form.html", delete_url=delete_url, delete_prompt=delete_prompt)
+
+@bp.route("/layout/<int:layout_id>/confirm-delete", methods=["GET", "DELETE"])
+@verify.token_required
+@verify.is_broadcaster
+@verify.owned_by_broadcaster
+def layout_confirm_delete(channel_id: int, role: str, layout_id: int) -> Response:
+    current_app.logger.info("layout_id=%s",layout_id)
+
+    layout = Layout.query.filter(
+        Layout.id == layout_id
+    ).one()
+
+    delete_url = f"{current_app.config['EBS_URL']}/layout/{layout.id}"
+    delete_prompt = f"Are you sure you want to delete this layout?<br>({layout.name})"
+    return render_template("confirm_delete_form.html", delete_url=delete_url, delete_prompt=delete_prompt)
+
 
 @bp.route("/layout/<int:layout_id>/update-order", methods=["POST"])
 @verify.token_required
@@ -471,6 +547,10 @@ def element_confirm_delete(channel_id: int, role: str, element_id: int) -> Respo
 @verify.owned_by_broadcaster
 def layout_update_order(channel_id: int, role: str, layout_id: int) -> Response:
     current_app.logger.info(request.form.copy())
+
+    layout = Layout.query.filter(
+        Layout.id == layout_id
+    ).one()
 
     elements = Element.query.filter(
         Element.layout_id == layout_id
@@ -490,29 +570,287 @@ def layout_update_order(channel_id: int, role: str, layout_id: int) -> Response:
 
     twitch.send_refresh_pubsub(channel_id)
 
-    resp = make_response(get_layout_html(layout_id, True))
+    resp = make_response(get_layout_html(layout, True))
 
     return resp
 
 
-@bp.route("/layout/<int:layout_id>", methods=["GET"])
-def layout(layout_id: int) -> Response:
+def ensure_broadcaster_exists(id: int):
 
+    try:
+        broadcaster = Broadcaster.query.filter(
+            Broadcaster.id == id
+        ).one()
+        return broadcaster
+    except NoResultFound:
+        pass
+
+    broadcaster_name = twitch.get_broadcaster_name(id)
+
+    broadcaster = Broadcaster(id=id, name=broadcaster_name)
+    db.session.add(broadcaster)
+    db.session.commit()
+
+    return broadcaster
+
+
+@bp.route("/layout/create", methods=["GET", "POST"])
+@verify.token_required
+@verify.is_broadcaster
+def layout_create(channel_id: int, role: str) -> Response:
+
+    form = LayoutForm()
+
+    if request.method == "POST":
+        if form.validate():
+            ensure_broadcaster_exists(channel_id)
+            current_app.logger.info("form valid")
+            current_app.logger.info(form.data)
+
+            layout = Layout(
+                broadcaster_id=channel_id,
+                name=form.name.data,
+                title=form.title.data,
+                show_title=form.show_title.data)
+
+
+            db.session.add(layout)
+            db.session.commit()
+
+            broadcaster = Broadcaster.query.filter(
+                Broadcaster.id == channel_id
+            ).one()
+
+            broadcaster.editing_layout = layout.id
+            db.session.commit()
+
+            resp = make_response("<p class='success-message'>Layout created</p>", 200)
+            resp.headers["HX-Trigger-After-Swap"] = "selectRefresh"
+            resp.headers["Access-Control-Expose-Headers"] = "*"
+
+            return resp
+        else:
+            current_app.logger.info("form invalid")
+            current_app.logger.info(form.errors)
+            errors_html = ""
+            for field, error in form.errors.items():
+                errors_html += f"{field}: {', '.join(error)}<br>"
+
+            resp = make_response(f"<p class='error-message'>{errors_html}</p>", 400)
+
+            return resp
+
+    if request.method == "GET":
+        form.show_title.data = True
+
+    resp = make_response(render_template(
+        "layout_form.html",
+        form_type="create",
+        form_url=f"{current_app.config['EBS_URL']}/layout/create",
+        form=form))
+
+    return resp
+
+
+@bp.route("/layout/<int:layout_id>/edit", methods=["GET", "PUT"])
+@verify.token_required
+@verify.is_broadcaster
+@verify.owned_by_broadcaster
+def layout_edit(channel_id: int, role: str, layout_id: int) -> Response:
+
+    form = LayoutForm()
+
+    layout = Layout.query.filter(
+        Layout.id == layout_id
+    ).one()
+
+    if request.method == "PUT":
+        if form.validate():
+
+            layout.title = form.title.data
+            layout.show_title = form.show_title.data
+
+            db.session.commit()
+
+            resp = make_response("<p class='success-message'>Layout modified</p>", 200)
+            resp.headers["HX-Trigger-After-Swap"] = "layoutUpdate"
+            resp.headers["Access-Control-Expose-Headers"] = "*"
+
+            return resp
+        else:
+            current_app.logger.info("form invalid")
+            current_app.logger.info(form.errors)
+            errors_html = ""
+            for field, error in form.errors.items():
+                errors_html += f"{field}: {', '.join(error)}<br>"
+
+            resp = make_response(f"<p class='error-message'>{errors_html}</p>", 400)
+
+            return resp
+
+    if request.method == "GET":
+        form.name.data = layout.name
+        form.show_title.data = layout.show_title
+        form.title.data = layout.title
+
+    resp = make_response(render_template(
+        "layout_form.html",
+        form_type="edit",
+        form_url=f"{current_app.config['EBS_URL']}/layout/{layout_id}/edit",
+        form=form))
+
+    return resp
+
+
+
+def get_current_layout(channel_id: int):
+    try:
+        broadcaster = Broadcaster.query.filter(
+            Broadcaster.id == channel_id
+        ).one()
+        assert broadcaster.current_layout is not None
+        layout = Layout.query.filter(
+            Layout.id == broadcaster.current_layout
+        ).one()
+        return layout
+    except (NoResultFound, AssertionError) as exp:
+        return None
+
+@bp.route("/layout", methods=["GET"])
+@verify.token_required
+def layout(channel_id: int, role: str) -> Response:
     edit = False
     if "edit" in request.args:
         edit = True if request.args["edit"] == "true" else False
 
-    resp = make_response(get_layout_html(layout_id, edit))
+    # if "layout_id" in request.args:
+    #     layout_id = int(request.args["layout_id"])
+    #     try:
+    #         layout = Layout.query.filter(
+    #             Layout.id == layout_id,
+    #             Layout.broadcaster_id == channel_id,
+    #         ).one()
+    #     except NoResultFound:
+    #         layout = None
+    # else:
+    layout = get_current_layout(channel_id)
 
-    return resp
+    if not layout:
+        current_app.logger.warning("Could not display layout, layout_id=%s broadcaster=%s", layout, channel_id)
+        return make_response("<p class='centered'>Layout not configured</p>")
+
+    return make_response(get_layout_html(layout, edit))
 
 
-def get_layout_html(layout_id: int, edit: bool) -> str:
+@bp.route("/layouts", methods=["GET","POST"])
+@verify.token_required
+@verify.is_broadcaster
+def layouts(channel_id: int, role: str) -> Response:
 
-    layout = Layout.query.filter(Layout.id == layout_id).one()
+    form = LayoutSelectForm()
+
+    ensure_broadcaster_exists(channel_id)
+
+    layouts = []
+    try:
+        broadcaster = Broadcaster.query.filter(
+            Broadcaster.id == channel_id
+        ).one()
+
+        layouts = Layout.query.filter(Layout.broadcaster_id == broadcaster.id).all()
+    except NoResultFound:
+        pass
+
+
+    layout_choices = []
+    for layout in layouts:
+        choice_text = layout.name
+        if layout.id == broadcaster.current_layout:
+            choice_text += " (ACTIVE)"
+
+        layout_choices.append((layout.id, choice_text))
+
+    form.layouts.choices = layout_choices
+
+    if request.method == "POST":
+        if form.validate():
+            current_app.logger.info("form valid")
+            current_app.logger.info(form.data)
+
+            layout =  Layout.query.filter(
+                Layout.id == form.layouts.data
+            ).one()
+
+            broadcaster.editing_layout = layout.id
+
+            if form.delete.data:
+                current_app.logger.info("delete")
+                resp = make_response(
+                    f"""
+                    <div
+                        hx-trigger="load"
+                        hx-get="{current_app.config['EBS_URL']}/layout/{form.layouts.data}/confirm-delete"
+                        hx-target="#dialog"
+                    </div>""")
+                resp.headers["HX-Retarget"] = "#dialog"
+                resp.headers["Access-Control-Expose-Headers"] = "*"
+                return resp
+
+            if form.edit.data:
+                current_app.logger.info("edit")
+                resp = make_response(
+                    f"""
+                    <div
+                        hx-trigger="load"
+                        hx-get="{current_app.config['EBS_URL']}/layout/{form.layouts.data}/edit"
+                        hx-target="#dialog"
+                    </div>""")
+                resp.headers["HX-Retarget"] = "#dialog"
+                resp.headers["Access-Control-Expose-Headers"] = "*"
+                return resp
+
+            resp = make_response(get_layout_html(layout, edit=True))
+            resp.headers["Access-Control-Expose-Headers"] = "*"
+
+            if form.make_active.data:
+                broadcaster.current_layout = layout.id
+                current_app.logger.info(layout.id)
+                db.session.commit()
+                twitch.send_refresh_pubsub(channel_id)
+                resp.headers["HX-Trigger"] = "selectRefresh"
+
+
+
+
+            return resp
+        else:
+            current_app.logger.info("form invalid")
+            current_app.logger.info(form.data)
+            current_app.logger.info(form.layouts.choices)
+            current_app.logger.info(form.errors)
+            resp = make_response("<p class='centered'>Please select or create a layout to edit</p>")
+            return resp
+            # errors_html = ""
+            # for field, error in form.errors.items():
+            #     errors_html += f"{field}: {', '.join(error)}<br>"
+
+            # return make_response(f"<p class='error-message'>{errors_html}</p>", 400)
+
+    if request.method == "GET":
+        current_app.logger.info("EDITING LAYOUT %s", broadcaster.editing_layout)
+        form.layouts.data = str(broadcaster.editing_layout)
+
+    return render_template(
+        "select_layout_form.html",
+        form_url=f"{current_app.config['EBS_URL']}/layouts",
+        form=form)
+
+
+def get_layout_html(layout: Layout, edit: bool) -> str:
+
     current_app.logger.debug(layout)
     elements = Element.query.filter(
-        Element.layout_id == layout_id
+        Element.layout_id == layout.id
     ).order_by(Element.position).all()
     current_app.logger.debug(elements)
     elements_list = []
@@ -621,8 +959,9 @@ def get_layout_html(layout_id: int, edit: bool) -> str:
 
     return render_template(
         "layout.html",
+        show_title=layout.show_title,
         title=layout.title,
-        ebs_url=current_app.config["EBS_URL"],
+        update_order_url=f"{current_app.config['EBS_URL']}/layout/{layout.id}/update-order",
         edit=edit,
         elements_list=elements_list,
     )

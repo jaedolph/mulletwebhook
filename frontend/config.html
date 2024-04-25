@@ -3,21 +3,20 @@
     <link rel="stylesheet" href="theme.css">
     <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js" type="text/javascript"></script>
     <script src="htmx.min.js"></script>
-    <script src="https://raw.githack.com/SortableJS/Sortable/master/Sortable.js"></script>
+    <script src="Sortable.min.js"></script>
     <script src="globals.js" type="module"></script>
     <script src="config.js" type="module"></script>
     <script src="theme.js" type="module"></script>
 </head>
 <html>
   <body id="root">
-    <button hx-get="https://mulletwebhook-test.hv1.jaedolph.net/layout/1?edit=true"
-    hx-trigger="click"
-    hx-target="#layout"
-    hx-indicator="#loader"
-    >
-    Preview layout
-    </button>
+    <button
+    hx-get="https://mulletwebhook-test.jaedolph.net/layout/create"
+    hx-target="#dialog"
+    >Create layout</button><br><br>
+    <form id="layout-select-form" hx-trigger="authed,selectRefresh from:body" hx-get="https://mulletwebhook-test.jaedolph.net/layouts" hx-indicator="#loader"></form>
     <div id="loader" class="htmx-indicator"><p>Loading...</p></div>
+    <p>Preview:</p>
     <div id="preview-window">
     <div id="layout"></div>
     </div>

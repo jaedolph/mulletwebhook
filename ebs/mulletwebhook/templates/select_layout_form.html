@@ -1,0 +1,10 @@
+<form
+    id="layout-select-form"
+    hx-post="{{ form_url }}"
+    hx-target="#layout"
+    hx-trigger="load, submit, change"
+    hx-indicator="#loader"
+    >
+    {{ form.layouts.label }} {{ form.layouts() }}<br><br>
+    {{ form.make_active() }} {{ form.edit() }} {{ form.delete() }}<br>
+</form>

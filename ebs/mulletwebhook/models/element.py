@@ -14,7 +14,7 @@ class Element(db.Model):  # type: ignore
 
     id: int = db.Column(db.Integer, primary_key=True)
     element_type: ElementType = db.Column(db.Enum(ElementType), nullable=False)
-    layout_id: int = db.Column(db.Integer, db.ForeignKey('layout.id', ondelete='CASCADE'), nullable=False)
+    layout_id: int = db.Column(db.Integer, db.ForeignKey('layout.id', ondelete='CASCADE'))
     position: int =  db.Column(db.Integer(), autoincrement=True)
     image = db.relationship('Image', uselist=False, backref=backref("element", passive_deletes=True))
     text = db.relationship('Text', uselist=False, backref=backref("element", passive_deletes=True))
