@@ -10,9 +10,14 @@ twitch.onAuthorized(function (auth) {
   htmx.trigger("#layout-loader", "authed")
 })
 
-// add the auth token to the request as a header
+
 htmx.on("htmx:configRequest", (e)=> {
+  // add the auth token to the request as a header
   e.detail.headers["Authorization"] = authorization
+  // update the URL to the proper extension URI
+  if  (!e.detail.path.startsWith("https")) {
+    e.detail.path = extensionUri + e.detail.path
+  }
 })
 
 twitch.listen("broadcast", function (target, contentType, message) {

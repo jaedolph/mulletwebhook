@@ -11,10 +11,10 @@
 <html>
   <body id="root">
     <button
-    hx-get="https://mulletwebhook-test.jaedolph.net/layout/create"
+    hx-get="/layout/create"
     hx-target="#dialog"
     >Create layout</button><br><br>
-    <form id="layout-select-form" hx-trigger="authed,selectRefresh from:body" hx-get="https://mulletwebhook-test.jaedolph.net/layouts" hx-indicator="#loader"></form>
+    <form id="layout-select-form" hx-trigger="authed,selectRefresh from:body" hx-get="/layouts" hx-indicator="#loader"></form>
     <div id="loader" class="htmx-indicator"><p>Loading...</p></div>
     <p>Preview:</p>
     <div id="preview-window">

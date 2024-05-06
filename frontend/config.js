@@ -10,10 +10,14 @@ twitch.onAuthorized(function (auth) {
   htmx.trigger("#layout-select-form", "authed")
 })
 
-
 // add the auth token to the request as a header
 htmx.on("htmx:configRequest", (e)=> {
   e.detail.headers["Authorization"] = authorization
+
+  // update the URL to the proper extension URI
+  if  (!e.detail.path.startsWith("https")) {
+    e.detail.path = extensionUri + e.detail.path
+  }
 })
 
 htmx.onLoad(function(content) {
