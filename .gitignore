@@ -14,3 +14,4 @@ yarn.lock
 *.zip
 .vscode
 scripts/deploy.sh
+frontend/deps
