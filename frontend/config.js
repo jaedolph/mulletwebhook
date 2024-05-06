@@ -52,9 +52,6 @@ htmx.on("htmx:afterSwap", (e) => {
       dialog.showModal()
       dialog.addEventListener("close", () => {
         dialog.remove()
-        // console.log("triggering refresh")
-        // htmx.trigger("#preview", "layoutUpdate")
-        // htmx.trigger("#layout-select-form", "layoutUpdate")
       })
       closeButton.addEventListener("click", () => {
         dialog.close()
@@ -77,7 +74,6 @@ htmx.on("htmx:beforeSwap", (e) => {
           setTimeout(() => {
             dialog.close()
           }, 500)
-          // htmx.trigger("#layout-select-form", "layoutUpdate")
         }
 
       } else {

@@ -6,7 +6,6 @@ let authorization
 
 twitch.onAuthorized(function (auth) {
   authorization = 'Bearer ' + auth.token
-  console.log('bits enabled: ' + twitch.features.isBitsEnabled)
   htmx.trigger("#layout-loader", "authed")
 })
 
@@ -21,8 +20,6 @@ htmx.on("htmx:configRequest", (e)=> {
 })
 
 twitch.listen("broadcast", function (target, contentType, message) {
-  console.log(`target ${target} contentType ${contentType} message ${message}`)
-
   if (message === "refresh") {
     // refresh after a random interval between 0-5s (to reduce ebs load)
     setTimeout(function () {
@@ -32,7 +29,6 @@ twitch.listen("broadcast", function (target, contentType, message) {
 })
 
 htmx.on("htmx:afterSwap", (e) => {
-  console.log("swap")
   // Response targeting #dialog => show the modal
   if (e.detail.target.id == "layout") {
     var webhookButtons = document.querySelectorAll(".webhook-button");
@@ -52,8 +48,6 @@ htmx.on("htmx:afterSwap", (e) => {
 })
 
 async function webhookRedeem (webhookID, webhookBitsProduct) {
-  console.log(webhookID)
-  console.log(webhookBitsProduct)
   try {
     const bitsTransaction = new Promise((complete, cancel) => {
       twitch.bits.onTransactionComplete(complete);
@@ -72,7 +66,6 @@ async function webhookRedeem (webhookID, webhookBitsProduct) {
         body: JSON.stringify({"transaction": tx})
       }
     )
-    console.log("test")
   } catch (error) {
     console.error(error)
   } finally {
