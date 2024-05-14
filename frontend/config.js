@@ -5,8 +5,7 @@ let authorization
 
 twitch.onAuthorized(function (auth) {
   authorization = 'Bearer ' + auth.token
-  console.log(auth)
-  console.log('bits enabled: ' + twitch.features.isBitsEnabled)
+  // wait for user to be authorized before getting content for layout-select-form
   htmx.trigger("#layout-select-form", "authed")
 })
 
@@ -21,7 +20,7 @@ htmx.on("htmx:configRequest", (e)=> {
 })
 
 htmx.onLoad(function(content) {
-  console.log("load content")
+  // allow sorting of elements in the panel
   var sortables = content.querySelectorAll(".grid-container");
   for (var i = 0; i < sortables.length; i++) {
     var sortable = sortables[i];
@@ -29,24 +28,22 @@ htmx.onLoad(function(content) {
       animation: 150,
 
       filter: ".add-new-button",
-      // Disable sorting on the `end` event
+      // disable sorting on the `end` event
       onEnd: function (evt) {
-        console.log("sortable enabled")
         this.option("disabled", true);
       }
     });
 
-    // Re-enable sorting on the `htmx:afterSwap` event
+    // re-enable sorting on the `htmx:afterSwap` event
     sortable.addEventListener("htmx:afterSwap", function() {
       sortableInstance.option("disabled", false);
-      console.log("sortable enabled")
     });
   }
 });
 
 htmx.on("htmx:afterSwap", (e) => {
-  // Response targeting #dialog => show the modal
   if (e.detail.target.id == "dialog") {
+      // set up event listeners to close dialog
       const dialog = document.querySelector("dialog")
       const closeButton = document.getElementById("dialog-close-button")
       dialog.showModal()
@@ -69,7 +66,6 @@ htmx.on("htmx:beforeSwap", (e) => {
 
         if (close_dialog) {
           // close the dialog after the success message has been shown for 0.5s
-          console.log("closing")
           const dialog = document.querySelector("dialog")
           setTimeout(() => {
             dialog.close()
@@ -77,7 +73,6 @@ htmx.on("htmx:beforeSwap", (e) => {
         }
 
       } else {
-        console.log(e.detail)
         // Show the error message on a non-200 response
         e.detail.shouldSwap = true
       }

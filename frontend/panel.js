@@ -6,6 +6,7 @@ let authorization
 
 twitch.onAuthorized(function (auth) {
   authorization = 'Bearer ' + auth.token
+  // wait for user to be authorized before getting content for layout-loader
   htmx.trigger("#layout-loader", "authed")
 })
 
@@ -20,8 +21,9 @@ htmx.on("htmx:configRequest", (e)=> {
 })
 
 twitch.listen("broadcast", function (target, contentType, message) {
+  // handle refreshing the panel if the streamer updates the layout
   if (message === "refresh") {
-    // refresh after a random interval between 0-5s (to reduce ebs load)
+    // refresh after a random interval between 0-5s (to reduce EBS load)
     setTimeout(function () {
       htmx.trigger("#layout-loader", "refresh")
     }, Math.floor(Math.random() * 5000))
@@ -29,12 +31,15 @@ twitch.listen("broadcast", function (target, contentType, message) {
 })
 
 htmx.on("htmx:afterSwap", (e) => {
-  // Response targeting #dialog => show the modal
+
+  // start a bits transaction if the user clicks one of the webhook buttons
   if (e.detail.target.id == "layout") {
     var webhookButtons = document.querySelectorAll(".webhook-button");
     for (var i = 0; i < webhookButtons.length; i++) {
       var webhookButton = webhookButtons[i];
+      // the webhookId is available in the data-id attribute of the button
       const webhookID = webhookButton.getAttribute("data-id")
+      // the bitsProduct is available in the data-product attribute of the button
       const webhookBitsProduct = webhookButton.getAttribute("data-product")
       webhookButton.addEventListener(
         "click",
@@ -47,6 +52,8 @@ htmx.on("htmx:afterSwap", (e) => {
   }
 })
 
+
+// handle the bits transaction and trigger the webhook in the EBS if successful
 async function webhookRedeem (webhookID, webhookBitsProduct) {
   try {
     const bitsTransaction = new Promise((complete, cancel) => {
