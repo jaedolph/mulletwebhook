@@ -422,6 +422,7 @@ def webhook_edit(channel_id: int, role: str, element_id: int, webhook_id: int) -
             webhook.name = form.name.data
             webhook.bits_product = form.bits_product.data
             webhook.data = json.loads(form.extra_data.data)
+            webhook.include_transaction_data = form.include_transaction_data.data
             db.session.commit()
             twitch.send_refresh_pubsub(channel_id)
             resp = make_response("<p class='success-message'>Webhook updated</p>", 201)
@@ -484,6 +485,7 @@ def webhook_create(channel_id: int, role: str, layout_id: int) -> Response:
                 name=form.name.data,
                 bits_product=form.bits_product.data,
                 data=json.loads(form.extra_data.data),
+                include_transaction_data=form.include_transaction_data.data,
                 element_id=element.id,
             )
             db.session.add(webhook)
