@@ -6,7 +6,6 @@ from flask_cors import CORS
 
 from mulletwebhook.config import Config
 from mulletwebhook.database import db
-from mulletwebhook.twitch import get_app_access_token
 
 logging.basicConfig(
     stream=sys.stdout,
@@ -28,10 +27,6 @@ def create_app(config_class: type = Config) -> Flask:
     except ValueError as exp:
         app.logger.error("error setting log level: %s", exp)
         sys.exit(1)
-
-    with app.app_context():
-        # TODO: ensure auth token gets renewed
-        app.config["AUTH_TOKEN"] = get_app_access_token()
 
     # initialize database
     db.init_app(app)

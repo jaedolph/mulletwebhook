@@ -24,7 +24,7 @@ def main() -> None:
     """Initializes the database."""
     with create_app().app_context():
 
-        broadcaster = Broadcaster(id=25819608,name="jaedolph", current_layout=1, editing_layout=1)
+        broadcaster = Broadcaster(id=25819608, current_layout=1, editing_layout=1)
         db.session.add(broadcaster)
 
         layout = Layout(

@@ -31,40 +31,6 @@ def create_pubsub_jwt_headers(broadcaster_id: int):
     return headers
 
 
-def get_app_access_token() -> str:
-    """Gets an app access token using the "client credentials" twitch oauth flow.
-
-    :raises RequestException: if request fails
-    :raises KeyError: if response doesn't contain expected values
-    :raises AssertionError: if the access token is in the wrong format
-    :return: valid access token
-    """
-    current_app.logger.debug("Generating new app access token")
-    req = requests.post(
-        "https://id.twitch.tv/oauth2/token",
-        params={
-            "client_id": current_app.config["CLIENT_ID"],
-            "client_secret": current_app.config["CLIENT_SECRET"],
-            "grant_type": "client_credentials",
-        },
-        headers={
-            "Content-Type": "application/x-www-form-urlencoded",
-        },
-        timeout=current_app.config["REQUEST_TIMEOUT"],
-    )
-
-    try:
-        req.raise_for_status()
-        auth = req.json()
-        current_app.logger.debug("auth: %s", auth)
-
-        access_token = auth["access_token"]
-        assert isinstance(access_token, str)
-    except (requests.RequestException, KeyError, AssertionError) as exp:
-        raise exp
-
-    return access_token
-
 
 def send_refresh_pubsub(broadcaster_id) -> None:
     """ """
@@ -86,24 +52,3 @@ def send_refresh_pubsub(broadcaster_id) -> None:
     )
     current_app.logger.debug("response_status=%s response_text=%s", resp.status_code, resp.text)
     resp.raise_for_status()
-
-
-def get_broadcaster_name(broadcaster_id: int) -> None:
-    """ """
-    current_app.logger.debug("getting user name for broadcaster_id=%s", broadcaster_id)
-
-    resp = requests.get(
-        f"https://api.twitch.tv/helix/users",
-        timeout=current_app.config["REQUEST_TIMEOUT"],
-        params={"id": str(broadcaster_id)},
-        headers={
-            "Authorization": f"Bearer {current_app.config['AUTH_TOKEN']}",
-            "Client-ID": current_app.config["CLIENT_ID"],
-        },
-    )
-    current_app.logger.debug("response_status=%s response_text=%s", resp.status_code, resp.text)
-    resp.raise_for_status()
-
-    data = resp.json()["data"]
-
-    return data[0]["login"]

@@ -639,9 +639,7 @@ def ensure_broadcaster_exists(id: int):
     except NoResultFound:
         pass
 
-    broadcaster_name = twitch.get_broadcaster_name(id)
-
-    broadcaster = Broadcaster(id=id, name=broadcaster_name)
+    broadcaster = Broadcaster(id=id)
     db.session.add(broadcaster)
     db.session.commit()
 
