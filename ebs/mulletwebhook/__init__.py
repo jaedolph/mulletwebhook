@@ -38,6 +38,7 @@ def create_app(config_class: type = Config) -> Flask:
 
     # pylint: disable=import-outside-toplevel
     import mulletwebhook.main.routes as main_routes
+
     # pylint: disable=
 
     app.register_blueprint(main_routes.bp)

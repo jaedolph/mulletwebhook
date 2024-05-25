@@ -1,9 +1,11 @@
 """layouts.py."""
+
 from dataclasses import dataclass
 
 from mulletwebhook.database import db
 from mulletwebhook.models.element import Element
 from sqlalchemy.orm import backref
+
 
 # pylint: disable=invalid-name
 @dataclass
@@ -14,5 +16,9 @@ class Layout(db.Model):  # type: ignore
     name: str = db.Column(db.String, nullable=False)
     title: str = db.Column(db.String)
     show_title = db.Column(db.Boolean, default=True)
-    broadcaster_id: int = db.Column(db.Integer, db.ForeignKey('broadcaster.id', ondelete='CASCADE'), nullable=False)
-    elements = db.relationship('Element', backref=backref("layout", passive_deletes=True), lazy=True)
+    broadcaster_id: int = db.Column(
+        db.Integer, db.ForeignKey("broadcaster.id", ondelete="CASCADE"), nullable=False
+    )
+    elements = db.relationship(
+        "Element", backref=backref("layout", passive_deletes=True), lazy=True
+    )

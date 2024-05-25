@@ -17,6 +17,7 @@ with open("jaedolph.png", "rb") as image:
 with open("mullet.png", "rb") as image:
     mullet_image = image.read()
 
+
 def main() -> None:
     """Initializes the database."""
     with create_app().app_context():
@@ -24,14 +25,22 @@ def main() -> None:
         db.create_all()
 
         # broadcaster = Broadcaster(id=25819608,name="jaedolph", current_layout=1, editing_layout=1)
-        broadcaster = Broadcaster(id=26391369,name="80smullet", current_layout=1, editing_layout=1)
+        broadcaster = Broadcaster(id=26391369, name="80smullet", current_layout=1, editing_layout=1)
         db.session.add(broadcaster)
 
-        layout = Layout(name="example layout",title="Jaedolph v Mullet", broadcaster_id=broadcaster.id)
+        layout = Layout(
+            name="example layout",
+            title="Jaedolph v Mullet",
+            broadcaster_id=broadcaster.id,
+        )
         db.session.add(layout)
         db.session.commit()
 
-        element1 = Element(element_type=ElementType.image, layout_id=layout.id, position=utils.get_next_layout_position(layout.id))
+        element1 = Element(
+            element_type=ElementType.image,
+            layout_id=layout.id,
+            position=utils.get_next_layout_position(layout.id),
+        )
         db.session.add(element1)
         db.session.commit()
 
@@ -39,7 +48,11 @@ def main() -> None:
         db.session.add(image)
         db.session.commit()
 
-        element2 = Element(element_type=ElementType.image, layout_id=layout.id, position=utils.get_next_layout_position(layout.id))
+        element2 = Element(
+            element_type=ElementType.image,
+            layout_id=layout.id,
+            position=utils.get_next_layout_position(layout.id),
+        )
         db.session.add(element2)
         db.session.commit()
 
@@ -47,7 +60,11 @@ def main() -> None:
         db.session.add(image)
         db.session.commit()
 
-        element3 = Element(element_type=ElementType.text, layout_id=layout.id, position=utils.get_next_layout_position(layout.id))
+        element3 = Element(
+            element_type=ElementType.text,
+            layout_id=layout.id,
+            position=utils.get_next_layout_position(layout.id),
+        )
         db.session.add(element3)
         db.session.commit()
 
@@ -55,7 +72,11 @@ def main() -> None:
         db.session.add(text)
         db.session.commit()
 
-        element4 = Element(element_type=ElementType.text, layout_id=layout.id, position=utils.get_next_layout_position(layout.id))
+        element4 = Element(
+            element_type=ElementType.text,
+            layout_id=layout.id,
+            position=utils.get_next_layout_position(layout.id),
+        )
         db.session.add(element4)
         db.session.commit()
 
@@ -63,7 +84,11 @@ def main() -> None:
         db.session.add(text)
         db.session.commit()
 
-        element5 = Element(element_type=ElementType.webhook, layout_id=layout.id, position=utils.get_next_layout_position(layout.id))
+        element5 = Element(
+            element_type=ElementType.webhook,
+            layout_id=layout.id,
+            position=utils.get_next_layout_position(layout.id),
+        )
         db.session.add(element5)
         db.session.commit()
 
@@ -78,7 +103,11 @@ def main() -> None:
         db.session.add(webhook)
         db.session.commit()
 
-        element6 = Element(element_type=ElementType.webhook, layout_id=layout.id, position=utils.get_next_layout_position(layout.id))
+        element6 = Element(
+            element_type=ElementType.webhook,
+            layout_id=layout.id,
+            position=utils.get_next_layout_position(layout.id),
+        )
         db.session.add(element6)
         db.session.commit()
 
@@ -92,10 +121,13 @@ def main() -> None:
         db.session.add(webhook)
         db.session.commit()
 
-        element7 = Element(element_type=ElementType.webhook, layout_id=layout.id, position=utils.get_next_layout_position(layout.id))
+        element7 = Element(
+            element_type=ElementType.webhook,
+            layout_id=layout.id,
+            position=utils.get_next_layout_position(layout.id),
+        )
         db.session.add(element7)
         db.session.commit()
-
 
         webhook = Webhook(
             name="Invert Screen (Jaedolph)",
@@ -108,7 +140,11 @@ def main() -> None:
         db.session.add(webhook)
         db.session.commit()
 
-        element8 = Element(element_type=ElementType.webhook, layout_id=layout.id, position=utils.get_next_layout_position(layout.id))
+        element8 = Element(
+            element_type=ElementType.webhook,
+            layout_id=layout.id,
+            position=utils.get_next_layout_position(layout.id),
+        )
         db.session.add(element8)
         db.session.commit()
 

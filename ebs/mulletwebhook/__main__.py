@@ -1,4 +1,5 @@
 """Main entrypoint."""
+
 from mulletwebhook import create_app
 
 

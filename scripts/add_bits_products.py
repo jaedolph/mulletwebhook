@@ -45,6 +45,7 @@ def get_app_access_token() -> str:
 
     return access_token
 
+
 def get_bits_products(access_token: str) -> dict[str, Any]:
 
     headers = {
@@ -60,7 +61,6 @@ def get_bits_products(access_token: str) -> dict[str, Any]:
     print(resp.text)
     resp.raise_for_status()
 
-
     try:
         data = json.loads(resp.json()["data"])
     except Exception:
@@ -68,8 +68,8 @@ def get_bits_products(access_token: str) -> dict[str, Any]:
 
     return data
 
-def update_bits_product(access_token: str, product: BitsProduct) -> None:
 
+def update_bits_product(access_token: str, product: BitsProduct) -> None:
 
     headers = {
         "Authorization": f"Bearer {access_token}",
@@ -103,7 +103,6 @@ def main():
 
         for product in BitsProduct:
             update_bits_product(access_token, product)
-
 
 
 if __name__ == "__main__":

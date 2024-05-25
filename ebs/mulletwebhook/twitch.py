@@ -16,11 +16,7 @@ def create_pubsub_jwt_headers(broadcaster_id: int):
         "user_id": str(broadcaster_id),
         "role": "external",
         "channel_id": str(broadcaster_id),
-        "pubsub_perms": {
-            "send":[
-                "broadcast"
-            ]
-        }
+        "pubsub_perms": {"send": ["broadcast"]},
     }
 
     jwt_token = jwt.encode(
@@ -69,9 +65,9 @@ def get_app_access_token() -> str:
 
     return access_token
 
+
 def send_refresh_pubsub(broadcaster_id) -> None:
-    """
-    """
+    """ """
     current_app.logger.debug("sending refresh pubsub message")
 
     jwt_headers = create_pubsub_jwt_headers(broadcaster_id)
@@ -79,7 +75,7 @@ def send_refresh_pubsub(broadcaster_id) -> None:
     body = {
         "target": ["broadcast"],
         "broadcaster_id": broadcaster_id,
-        "message": "refresh"
+        "message": "refresh",
     }
 
     resp = requests.post(
@@ -91,20 +87,18 @@ def send_refresh_pubsub(broadcaster_id) -> None:
     current_app.logger.debug("response_status=%s response_text=%s", resp.status_code, resp.text)
     resp.raise_for_status()
 
+
 def get_broadcaster_name(broadcaster_id: int) -> None:
-    """
-    """
+    """ """
     current_app.logger.debug("getting user name for broadcaster_id=%s", broadcaster_id)
 
     resp = requests.get(
         f"https://api.twitch.tv/helix/users",
         timeout=current_app.config["REQUEST_TIMEOUT"],
-        params={
-            "id": str(broadcaster_id)
-        },
+        params={"id": str(broadcaster_id)},
         headers={
             "Authorization": f"Bearer {current_app.config['AUTH_TOKEN']}",
-            "Client-ID": current_app.config["CLIENT_ID"]
+            "Client-ID": current_app.config["CLIENT_ID"],
         },
     )
     current_app.logger.debug("response_status=%s response_text=%s", resp.status_code, resp.text)

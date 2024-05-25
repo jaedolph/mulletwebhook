@@ -1,6 +1,8 @@
 """Configuration for the app."""
+
 import os
 import uuid
+
 
 # pylint: disable=too-few-public-methods
 class Config:

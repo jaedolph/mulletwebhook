@@ -1,9 +1,11 @@
 from enum import Enum
 
+
 class ElementType(Enum):
     webhook = 1
     image = 2
     text = 3
+
 
 class BitsProduct(Enum):
     reward_1bits = 1

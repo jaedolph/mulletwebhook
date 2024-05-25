@@ -1,4 +1,5 @@
 """Main routes."""
+
 from datetime import datetime
 import json
 import jwt
@@ -9,11 +10,29 @@ from typing import Any
 from uuid import uuid4
 import time
 
-from flask import Blueprint, Response, abort, jsonify, make_response, request, current_app, render_template
+from flask import (
+    Blueprint,
+    Response,
+    abort,
+    jsonify,
+    make_response,
+    request,
+    current_app,
+    render_template,
+)
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed, FileSize
 
-from wtforms import StringField, FileField, SelectField, FieldList, FormField, SubmitField, ValidationError, BooleanField
+from wtforms import (
+    StringField,
+    FileField,
+    SelectField,
+    FieldList,
+    FormField,
+    SubmitField,
+    ValidationError,
+    BooleanField,
+)
 from wtforms.validators import DataRequired, Length, URL
 from wtforms.widgets import TextArea
 
@@ -34,10 +53,18 @@ bp = Blueprint("main", __name__)
 
 
 class TextForm(FlaskForm):
-    text = StringField('text', validators=[DataRequired(), Length(min=1, max=100)])
+    text = StringField("text", validators=[DataRequired(), Length(min=1, max=100)])
+
 
 class ImageForm(FlaskForm):
-    image = FileField(validators=[FileRequired(), FileAllowed(['png']), FileSize(max_size=1048576, message="Images must be less than 1MiB in size")])
+    image = FileField(
+        validators=[
+            FileRequired(),
+            FileAllowed(["png"]),
+            FileSize(max_size=1048576, message="Images must be less than 1MiB in size"),
+        ]
+    )
+
 
 def validate_is_json(form, field):
     del form
@@ -45,6 +72,7 @@ def validate_is_json(form, field):
         json.loads(field.data)
     except json.decoder.JSONDecodeError as exp:
         raise ValidationError("Data must be valid json")
+
 
 def validate_is_https(form, field):
     del form
@@ -55,25 +83,42 @@ def validate_is_https(form, field):
 class ElementForm(FlaskForm):
     element_type = SelectField("Type", choices=[(type.name, type.name) for type in ElementType])
 
+
 class WebhookForm(FlaskForm):
     name = StringField(validators=[DataRequired(), Length(min=1, max=100)])
-    url = StringField(validators=[DataRequired(), URL(require_tld=True, allow_ip=False), validate_is_https, Length(min=1, max=2048)])
-    bits_product = SelectField("Bits cost", choices=[(product.name, product.value) for product in BitsProduct])
+    url = StringField(
+        validators=[
+            DataRequired(),
+            URL(require_tld=True, allow_ip=False),
+            validate_is_https,
+            Length(min=1, max=2048),
+        ]
+    )
+    bits_product = SelectField(
+        "Bits cost", choices=[(product.name, product.value) for product in BitsProduct]
+    )
     name = StringField(validators=[DataRequired(), Length(min=1, max=100)])
     include_transaction_data = BooleanField("include transaction data")
-    extra_data = StringField('data', validators=[DataRequired(), Length(min=1, max=2000), validate_is_json], widget=TextArea())
+    extra_data = StringField(
+        "data",
+        validators=[DataRequired(), Length(min=1, max=2000), validate_is_json],
+        widget=TextArea(),
+    )
     test_webhook = SubmitField("Test Webhook")
+
 
 class LayoutForm(FlaskForm):
     name = StringField(validators=[DataRequired(), Length(min=1, max=100)])
     title = StringField(validators=[Length(min=0, max=26)])
     show_title = BooleanField("show title")
 
+
 class LayoutSelectForm(FlaskForm):
     layouts = SelectField("Select Layout", choices=[])
     edit = SubmitField("Edit Title")
     make_active = SubmitField("Activate")
     delete = SubmitField("Delete Layout")
+
 
 @bp.route("/webhook/<int:webhook_id>", methods=["POST"])
 @verify.token_required
@@ -93,9 +138,7 @@ def redeem(channel_id: int, role: str, webhook_id: int) -> Response:
         key=base64.b64decode(current_app.config["EXTENSION_SECRET"]),
         algorithms=["HS256"],
     )
-    webhook = Webhook.query.filter(
-        Webhook.id == webhook_id
-    ).one()
+    webhook = Webhook.query.filter(Webhook.id == webhook_id).one()
 
     # current_app.logger.info(webhook.url)
     # current_app.logger.info(webhook.data)
@@ -112,15 +155,14 @@ def redeem(channel_id: int, role: str, webhook_id: int) -> Response:
 
     return resp
 
+
 @bp.route("/element/image/<int:image_id>", methods=["GET"])
 def image_get(image_id: int) -> Response:
-    image = Image.query.filter(
-        Image.id == image_id
-    ).one()
+    image = Image.query.filter(Image.id == image_id).one()
     resp = make_response(image.data)
     resp.headers = {
         "Content-type": "image/png",
-        "Cache-Control": "public, max-age=86400"
+        "Cache-Control": "public, max-age=86400",
     }
 
     return resp
@@ -135,9 +177,7 @@ def text_edit(channel_id: int, role: str, element_id: int, text_id: int) -> Resp
 
     form = TextForm()
 
-    text = Text.query.filter(
-        Text.id == text_id
-    ).one()
+    text = Text.query.filter(Text.id == text_id).one()
 
     if request.method == "PUT":
         if form.validate():
@@ -146,7 +186,6 @@ def text_edit(channel_id: int, role: str, element_id: int, text_id: int) -> Resp
             text.text = form.text.data
             db.session.commit()
             twitch.send_refresh_pubsub(channel_id)
-
 
             resp = make_response("<p class='success-message'>Text updated</p>", 201)
             resp.headers["HX-Trigger-After-Swap"] = "layoutUpdate"
@@ -169,7 +208,9 @@ def text_edit(channel_id: int, role: str, element_id: int, text_id: int) -> Resp
         "text_form.html",
         form_type="edit",
         form_url=f"{current_app.config['EBS_URL']}/element/{element_id}/text/{text_id}/edit",
-        form=form)
+        form=form,
+    )
+
 
 @bp.route("/layout/<int:layout_id>/text/create", methods=["GET", "POST"])
 @verify.token_required
@@ -184,7 +225,11 @@ def text_create(channel_id: int, role: str, layout_id: int) -> Response:
         if form.validate():
             current_app.logger.info("form valid")
             current_app.logger.info(form.data)
-            element = Element(layout_id=layout_id, element_type=ElementType.text, position=utils.get_next_layout_position(layout_id))
+            element = Element(
+                layout_id=layout_id,
+                element_type=ElementType.text,
+                position=utils.get_next_layout_position(layout_id),
+            )
             db.session.add(element)
             db.session.commit()
             text = Text(text=form.text.data, element_id=element.id)
@@ -212,7 +257,9 @@ def text_create(channel_id: int, role: str, layout_id: int) -> Response:
         "text_form.html",
         form_type="create",
         form_url=f"{current_app.config['EBS_URL']}/layout/{layout_id}/text/create",
-        form=form)
+        form=form,
+    )
+
 
 @bp.route("/element/<int:element_id>/image/<int:image_id>/edit", methods=["GET", "PUT"])
 @verify.token_required
@@ -223,9 +270,7 @@ def image_edit(channel_id: int, role: str, element_id: int, image_id: int) -> Re
 
     form = ImageForm()
 
-    image = Image.query.filter(
-        Image.id == image_id
-    ).one()
+    image = Image.query.filter(Image.id == image_id).one()
 
     if request.method == "PUT":
         if form.validate():
@@ -253,7 +298,9 @@ def image_edit(channel_id: int, role: str, element_id: int, image_id: int) -> Re
         "image_form.html",
         form_type="edit",
         form_url=f"{current_app.config['EBS_URL']}/element/{element_id}/image/{image_id}/edit",
-        form=form)
+        form=form,
+    )
+
 
 @bp.route("/layout/<int:layout_id>/image/create", methods=["GET", "POST"])
 @verify.token_required
@@ -267,10 +314,18 @@ def image_create(channel_id: int, role: str, layout_id: int) -> Response:
         if form.validate():
             current_app.logger.info("form valid")
             current_app.logger.info(form.data)
-            element = Element(layout_id=layout_id, element_type=ElementType.image, position=utils.get_next_layout_position(layout_id))
+            element = Element(
+                layout_id=layout_id,
+                element_type=ElementType.image,
+                position=utils.get_next_layout_position(layout_id),
+            )
             db.session.add(element)
             db.session.commit()
-            image = Image(filename=form.image.data.filename, data=form.image.data.read(), element_id=element.id)
+            image = Image(
+                filename=form.image.data.filename,
+                data=form.image.data.read(),
+                element_id=element.id,
+            )
             db.session.add(image)
             db.session.commit()
             # re-order elements
@@ -296,7 +351,9 @@ def image_create(channel_id: int, role: str, layout_id: int) -> Response:
         "image_form.html",
         form_type="create",
         form_url=f"{current_app.config['EBS_URL']}/layout/{layout_id}/image/create",
-        form=form)
+        form=form,
+    )
+
 
 @bp.route("/layout/<int:layout_id>/element/create", methods=["GET"])
 @verify.token_required
@@ -308,7 +365,8 @@ def element_create(channel_id: int, role: str, layout_id: int) -> Response:
         "element_form.html",
         image_create_url=f"{current_app.config['EBS_URL']}/layout/{layout_id}/image/create",
         text_create_url=f"{current_app.config['EBS_URL']}/layout/{layout_id}/text/create",
-        webhook_create_url=f"{current_app.config['EBS_URL']}/layout/{layout_id}/webhook/create")
+        webhook_create_url=f"{current_app.config['EBS_URL']}/layout/{layout_id}/webhook/create",
+    )
 
 
 def test_webhook(form):
@@ -319,19 +377,16 @@ def test_webhook(form):
     webhook_data = json.loads(form.extra_data.data)
     transaction_example = {
         "product": {
-        "sku": form.bits_product.data,
-        "displayName": f"{bits_cost} Bit Reward",
-        "cost": {
-            "amount": str(bits_cost),
-            "type": "bits"
-        },
-        "inDevelopment": False
+            "sku": form.bits_product.data,
+            "displayName": f"{bits_cost} Bit Reward",
+            "cost": {"amount": str(bits_cost), "type": "bits"},
+            "inDevelopment": False,
         },
         "transactionId": str(uuid4()),
         "userId": "123456789",
         "displayName": "test_user",
         "initiator": "current_user",
-        "transactionReceipt": "<jwt with transaction receipt goes here>"
+        "transactionReceipt": "<jwt with transaction receipt goes here>",
     }
 
     if form.include_transaction_data:
@@ -350,9 +405,7 @@ def webhook_edit(channel_id: int, role: str, element_id: int, webhook_id: int) -
 
     form = WebhookForm()
 
-    webhook =  Webhook.query.filter(
-         Webhook.id == webhook_id
-    ).one()
+    webhook = Webhook.query.filter(Webhook.id == webhook_id).one()
 
     if request.method == "PUT":
         if form.validate():
@@ -389,13 +442,14 @@ def webhook_edit(channel_id: int, role: str, element_id: int, webhook_id: int) -
         form.url.data = webhook.url
         form.bits_product.data = webhook.bits_product.name
         form.include_transaction_data.data = webhook.include_transaction_data
-        form.extra_data.data =  json.dumps(webhook.data, indent=2)
+        form.extra_data.data = json.dumps(webhook.data, indent=2)
 
     return render_template(
         "webhook_form.html",
         form_type="edit",
         form_url=f"{current_app.config['EBS_URL']}/element/{element_id}/webhook/{webhook_id}/edit",
-        form=form)
+        form=form,
+    )
 
 
 @bp.route("/layout/<int:layout_id>/webhook/create", methods=["GET", "POST"])
@@ -418,7 +472,11 @@ def webhook_create(channel_id: int, role: str, layout_id: int) -> Response:
                     return make_response(f"<p class='error-message'>Webhook failed</p>", 500)
                 return make_response(f"<p class='success-message'>Webhook OK</p>")
 
-            element = Element(layout_id=layout_id, element_type=ElementType.webhook, position=utils.get_next_layout_position(layout_id))
+            element = Element(
+                layout_id=layout_id,
+                element_type=ElementType.webhook,
+                position=utils.get_next_layout_position(layout_id),
+            )
             db.session.add(element)
             db.session.commit()
             webhook = Webhook(
@@ -456,18 +514,18 @@ def webhook_create(channel_id: int, role: str, layout_id: int) -> Response:
         "webhook_form.html",
         form_type="create",
         form_url=f"{current_app.config['EBS_URL']}/layout/{layout_id}/webhook/create",
-        form=form)
+        form=form,
+    )
+
 
 @bp.route("/element/<int:element_id>", methods=["DELETE"])
 @verify.token_required
 @verify.is_broadcaster
 @verify.owned_by_broadcaster
 def element_delete(channel_id: int, role: str, element_id: int) -> Response:
-    current_app.logger.info("element_id=%s",element_id)
+    current_app.logger.info("element_id=%s", element_id)
 
-    element = Element.query.filter(
-        Element.id == element_id
-    ).one()
+    element = Element.query.filter(Element.id == element_id).one()
     layout_id = element.layout_id
     db.session.delete(element)
     db.session.commit()
@@ -482,16 +540,15 @@ def element_delete(channel_id: int, role: str, element_id: int) -> Response:
     resp.headers["Access-Control-Expose-Headers"] = "*"
     return resp
 
+
 @bp.route("/layout/<int:layout_id>", methods=["DELETE"])
 @verify.token_required
 @verify.is_broadcaster
 @verify.owned_by_broadcaster
 def layout_delete(channel_id: int, role: str, layout_id: int) -> Response:
-    current_app.logger.info("layout_id=%s",layout_id)
+    current_app.logger.info("layout_id=%s", layout_id)
 
-    layout = Layout.query.filter(
-        Layout.id == layout_id
-    ).one()
+    layout = Layout.query.filter(Layout.id == layout_id).one()
     db.session.delete(layout)
     db.session.commit()
 
@@ -507,11 +564,9 @@ def layout_delete(channel_id: int, role: str, layout_id: int) -> Response:
 @verify.is_broadcaster
 @verify.owned_by_broadcaster
 def element_confirm_delete(channel_id: int, role: str, element_id: int) -> Response:
-    current_app.logger.info("element_id=%s",element_id)
+    current_app.logger.info("element_id=%s", element_id)
 
-    element = Element.query.filter(
-        Element.id == element_id
-    ).one()
+    element = Element.query.filter(Element.id == element_id).one()
 
     element_name = ""
     if element.element_type == ElementType.image:
@@ -523,22 +578,25 @@ def element_confirm_delete(channel_id: int, role: str, element_id: int) -> Respo
 
     delete_url = f"{current_app.config['EBS_URL']}/element/{element_id}"
     delete_prompt = f"Are you sure you want to delete this {element.element_type.name} element?<br>({element_name})"
-    return render_template("confirm_delete_form.html", delete_url=delete_url, delete_prompt=delete_prompt)
+    return render_template(
+        "confirm_delete_form.html", delete_url=delete_url, delete_prompt=delete_prompt
+    )
+
 
 @bp.route("/layout/<int:layout_id>/confirm-delete", methods=["GET", "DELETE"])
 @verify.token_required
 @verify.is_broadcaster
 @verify.owned_by_broadcaster
 def layout_confirm_delete(channel_id: int, role: str, layout_id: int) -> Response:
-    current_app.logger.info("layout_id=%s",layout_id)
+    current_app.logger.info("layout_id=%s", layout_id)
 
-    layout = Layout.query.filter(
-        Layout.id == layout_id
-    ).one()
+    layout = Layout.query.filter(Layout.id == layout_id).one()
 
     delete_url = f"{current_app.config['EBS_URL']}/layout/{layout.id}"
     delete_prompt = f"Are you sure you want to delete this layout?<br>({layout.name})"
-    return render_template("confirm_delete_form.html", delete_url=delete_url, delete_prompt=delete_prompt)
+    return render_template(
+        "confirm_delete_form.html", delete_url=delete_url, delete_prompt=delete_prompt
+    )
 
 
 @bp.route("/layout/<int:layout_id>/update-order", methods=["POST"])
@@ -548,13 +606,9 @@ def layout_confirm_delete(channel_id: int, role: str, layout_id: int) -> Respons
 def layout_update_order(channel_id: int, role: str, layout_id: int) -> Response:
     current_app.logger.info(request.form.copy())
 
-    layout = Layout.query.filter(
-        Layout.id == layout_id
-    ).one()
+    layout = Layout.query.filter(Layout.id == layout_id).one()
 
-    elements = Element.query.filter(
-        Element.layout_id == layout_id
-    ).order_by(Element.position).all()
+    elements = Element.query.filter(Element.layout_id == layout_id).order_by(Element.position).all()
 
     try:
         for new_pos, old_pos in enumerate(request.form.getlist("element")):
@@ -578,9 +632,7 @@ def layout_update_order(channel_id: int, role: str, layout_id: int) -> Response:
 def ensure_broadcaster_exists(id: int):
 
     try:
-        broadcaster = Broadcaster.query.filter(
-            Broadcaster.id == id
-        ).one()
+        broadcaster = Broadcaster.query.filter(Broadcaster.id == id).one()
         return broadcaster
     except NoResultFound:
         pass
@@ -611,15 +663,13 @@ def layout_create(channel_id: int, role: str) -> Response:
                 broadcaster_id=channel_id,
                 name=form.name.data,
                 title=form.title.data,
-                show_title=form.show_title.data)
-
+                show_title=form.show_title.data,
+            )
 
             db.session.add(layout)
             db.session.commit()
 
-            broadcaster = Broadcaster.query.filter(
-                Broadcaster.id == channel_id
-            ).one()
+            broadcaster = Broadcaster.query.filter(Broadcaster.id == channel_id).one()
 
             broadcaster.editing_layout = layout.id
             db.session.commit()
@@ -643,11 +693,14 @@ def layout_create(channel_id: int, role: str) -> Response:
     if request.method == "GET":
         form.show_title.data = True
 
-    resp = make_response(render_template(
-        "layout_form.html",
-        form_type="create",
-        form_url=f"{current_app.config['EBS_URL']}/layout/create",
-        form=form))
+    resp = make_response(
+        render_template(
+            "layout_form.html",
+            form_type="create",
+            form_url=f"{current_app.config['EBS_URL']}/layout/create",
+            form=form,
+        )
+    )
 
     return resp
 
@@ -660,9 +713,7 @@ def layout_edit(channel_id: int, role: str, layout_id: int) -> Response:
 
     form = LayoutForm()
 
-    layout = Layout.query.filter(
-        Layout.id == layout_id
-    ).one()
+    layout = Layout.query.filter(Layout.id == layout_id).one()
 
     if request.method == "PUT":
         if form.validate():
@@ -693,28 +744,27 @@ def layout_edit(channel_id: int, role: str, layout_id: int) -> Response:
         form.show_title.data = layout.show_title
         form.title.data = layout.title
 
-    resp = make_response(render_template(
-        "layout_form.html",
-        form_type="edit",
-        form_url=f"{current_app.config['EBS_URL']}/layout/{layout_id}/edit",
-        form=form))
+    resp = make_response(
+        render_template(
+            "layout_form.html",
+            form_type="edit",
+            form_url=f"{current_app.config['EBS_URL']}/layout/{layout_id}/edit",
+            form=form,
+        )
+    )
 
     return resp
 
 
-
 def get_current_layout(channel_id: int):
     try:
-        broadcaster = Broadcaster.query.filter(
-            Broadcaster.id == channel_id
-        ).one()
+        broadcaster = Broadcaster.query.filter(Broadcaster.id == channel_id).one()
         assert broadcaster.current_layout is not None
-        layout = Layout.query.filter(
-            Layout.id == broadcaster.current_layout
-        ).one()
+        layout = Layout.query.filter(Layout.id == broadcaster.current_layout).one()
         return layout
     except (NoResultFound, AssertionError) as exp:
         return None
+
 
 @bp.route("/layout", methods=["GET"])
 @verify.token_required
@@ -736,13 +786,15 @@ def layout(channel_id: int, role: str) -> Response:
     layout = get_current_layout(channel_id)
 
     if not layout:
-        current_app.logger.warning("Could not display layout, layout_id=%s broadcaster=%s", layout, channel_id)
+        current_app.logger.warning(
+            "Could not display layout, layout_id=%s broadcaster=%s", layout, channel_id
+        )
         return make_response("<p class='centered'>Layout not configured</p>")
 
     return make_response(get_layout_html(layout, edit))
 
 
-@bp.route("/layouts", methods=["GET","POST"])
+@bp.route("/layouts", methods=["GET", "POST"])
 @verify.token_required
 @verify.is_broadcaster
 def layouts(channel_id: int, role: str) -> Response:
@@ -753,14 +805,11 @@ def layouts(channel_id: int, role: str) -> Response:
 
     layouts = []
     try:
-        broadcaster = Broadcaster.query.filter(
-            Broadcaster.id == channel_id
-        ).one()
+        broadcaster = Broadcaster.query.filter(Broadcaster.id == channel_id).one()
 
         layouts = Layout.query.filter(Layout.broadcaster_id == broadcaster.id).all()
     except NoResultFound:
         pass
-
 
     layout_choices = []
     for layout in layouts:
@@ -777,9 +826,7 @@ def layouts(channel_id: int, role: str) -> Response:
             current_app.logger.info("form valid")
             current_app.logger.info(form.data)
 
-            layout =  Layout.query.filter(
-                Layout.id == form.layouts.data
-            ).one()
+            layout = Layout.query.filter(Layout.id == form.layouts.data).one()
 
             broadcaster.editing_layout = layout.id
 
@@ -791,7 +838,8 @@ def layouts(channel_id: int, role: str) -> Response:
                         hx-trigger="load"
                         hx-get="{current_app.config['EBS_URL']}/layout/{form.layouts.data}/confirm-delete"
                         hx-target="#dialog"
-                    </div>""")
+                    </div>"""
+                )
                 resp.headers["HX-Retarget"] = "#dialog"
                 resp.headers["Access-Control-Expose-Headers"] = "*"
                 return resp
@@ -804,7 +852,8 @@ def layouts(channel_id: int, role: str) -> Response:
                         hx-trigger="load"
                         hx-get="{current_app.config['EBS_URL']}/layout/{form.layouts.data}/edit"
                         hx-target="#dialog"
-                    </div>""")
+                    </div>"""
+                )
                 resp.headers["HX-Retarget"] = "#dialog"
                 resp.headers["Access-Control-Expose-Headers"] = "*"
                 return resp
@@ -818,9 +867,6 @@ def layouts(channel_id: int, role: str) -> Response:
                 db.session.commit()
                 twitch.send_refresh_pubsub(channel_id)
                 resp.headers["HX-Trigger"] = "selectRefresh"
-
-
-
 
             return resp
         else:
@@ -843,15 +889,14 @@ def layouts(channel_id: int, role: str) -> Response:
     return render_template(
         "select_layout_form.html",
         form_url=f"{current_app.config['EBS_URL']}/layouts",
-        form=form)
+        form=form,
+    )
 
 
 def get_layout_html(layout: Layout, edit: bool) -> str:
 
     current_app.logger.debug(layout)
-    elements = Element.query.filter(
-        Element.layout_id == layout.id
-    ).order_by(Element.position).all()
+    elements = Element.query.filter(Element.layout_id == layout.id).order_by(Element.position).all()
     current_app.logger.debug(elements)
     elements_list = []
     for element in elements:
@@ -880,12 +925,12 @@ def get_layout_html(layout: Layout, edit: bool) -> str:
 
         if element.element_type == ElementType.image:
             current_app.logger.debug("image")
-            image = Image.query.filter(
-                Image.element_id == element.id
-            ).one()
+            image = Image.query.filter(Image.element_id == element.id).one()
             image_url = f"{current_app.config['EBS_URL']}/element/image/{image.id}?version={image.date_modified.strftime('%s')}"
             if edit:
-                edit_url = f"{current_app.config['EBS_URL']}/element/{element.id}/image/{image.id}/edit"
+                edit_url = (
+                    f"{current_app.config['EBS_URL']}/element/{element.id}/image/{image.id}/edit"
+                )
                 edit_button = edit_button_template.format(element_id=element.id, edit_url=edit_url)
             entry = f"""
                 <input type='hidden' name='element' value='{element.position}'/>
@@ -893,11 +938,11 @@ def get_layout_html(layout: Layout, edit: bool) -> str:
             """
         if element.element_type == ElementType.text:
             current_app.logger.debug("text")
-            text = Text.query.filter(
-                Text.element_id == element.id
-            ).one()
+            text = Text.query.filter(Text.element_id == element.id).one()
             if edit:
-                edit_url = f"{current_app.config['EBS_URL']}/element/{element.id}/text/{text.id}/edit"
+                edit_url = (
+                    f"{current_app.config['EBS_URL']}/element/{element.id}/text/{text.id}/edit"
+                )
                 edit_button = edit_button_template.format(element_id=element.id, edit_url=edit_url)
             entry = f"""
                 <input type='hidden' name='element' value='{element.position}'/>
@@ -905,9 +950,7 @@ def get_layout_html(layout: Layout, edit: bool) -> str:
                 """
         if element.element_type == ElementType.webhook:
             current_app.logger.debug("webhook")
-            webhook = Webhook.query.filter(
-                Webhook.element_id == element.id
-            ).one()
+            webhook = Webhook.query.filter(Webhook.element_id == element.id).one()
 
             if edit:
                 edit_url = f"{current_app.config['EBS_URL']}/element/{element.id}/webhook/{webhook.id}/edit"
@@ -937,11 +980,13 @@ def get_layout_html(layout: Layout, edit: bool) -> str:
                         {delete_button}
                     </div>
                 """
-            elements_list.append(f"""
+            elements_list.append(
+                f"""
             <div class='element' id='element-{element.id}'>
                 {entry}
             </div>
-            """)
+            """
+            )
 
     if edit:
         add_new_button = f"""
