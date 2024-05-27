@@ -1,6 +1,6 @@
 'use strict'
 import { twitch, extensionUri } from './globals.js'
-import htmx from 'htmx'
+/* global htmx:readonly */
 
 let authorization
 

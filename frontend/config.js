@@ -1,7 +1,6 @@
 'use strict'
 import { twitch, extensionUri } from './globals.js'
-import htmx from 'htmx'
-import Sortable from 'Sortable'
+/* global htmx:readonly, Sortable:readonly */
 
 let authorization
 
