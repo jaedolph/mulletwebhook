@@ -1,0 +1,25 @@
+name: Create zip of frontend files
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  zip-files:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: download javascript deps
+        run: |
+          ./scripts/install_js_deps.sh
+        shell: bash
+      - name: create zip file
+        run: |
+          ./scripts/package_frontend.sh ${{github.ref_name }}
+        shell: bash
+      - name: Upload zip file
+        run: |
+          gh release upload ${{github.event.release.tag_name}} dist/mulletwebhook-frontend-${{github.ref_name }}.zip
+        env:
+          GITHUB_TOKEN: ${{ github.TOKEN }}
+        shell: bash
