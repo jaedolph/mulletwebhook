@@ -1,16 +1,20 @@
+"""Twitch related functions."""
+
 import base64
-import json
 import time
+from typing import Any
 
 import jwt
 import requests
 from flask import current_app
-from typing import Any
-
-from mulletwebhook.models.enums import BitsProduct
 
 
-def create_pubsub_jwt_headers(broadcaster_id: int):
+def create_pubsub_jwt_headers(broadcaster_id: int) -> dict[str, Any]:
+    """Create a JWT that can be used to send pubsub messages.
+
+    :param broadcaster_id: id of the broadcaster to create the token for
+    :return: dictionary of JWT headers that can be used for pubsub messages
+    """
     jwt_payload = {
         "exp": int(time.time() + 10),
         "user_id": str(broadcaster_id),
@@ -31,16 +35,19 @@ def create_pubsub_jwt_headers(broadcaster_id: int):
     return headers
 
 
+def send_refresh_pubsub(broadcaster_id: int) -> None:
+    """Send a refresh message to the extension owned by a specific broadcaster.
 
-def send_refresh_pubsub(broadcaster_id) -> None:
-    """ """
+    :param broadcaster_id: id of the broadcaster to send pubsub message for
+    """
+
     current_app.logger.debug("sending refresh pubsub message")
 
     jwt_headers = create_pubsub_jwt_headers(broadcaster_id)
 
     body = {
         "target": ["broadcast"],
-        "broadcaster_id": broadcaster_id,
+        "broadcaster_id": str(broadcaster_id),
         "message": "refresh",
     }
 

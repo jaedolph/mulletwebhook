@@ -1,13 +1,21 @@
+"""Enums used for static values."""
+
 from enum import Enum
+
+# pylint: disable=invalid-name
 
 
 class ElementType(Enum):
+    """Enum for different element types."""
+
     webhook = 1
     image = 2
     text = 3
 
 
 class BitsProduct(Enum):
+    """Enum for different bits products used by the extension."""
+
     reward_1bits = 1
     reward_5bits = 5
     reward_10bits = 10

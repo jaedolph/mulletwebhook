@@ -1,12 +1,14 @@
 """element.py."""
 
 from dataclasses import dataclass
-
 from datetime import datetime
-from mulletwebhook.database import db
-from mulletwebhook.models.enums import ElementType, BitsProduct
+from typing import Any
+
 from sqlalchemy.orm import backref
 from sqlalchemy.sql import func
+
+from mulletwebhook.database import db
+from mulletwebhook.models.enums import BitsProduct, ElementType
 
 
 # pylint: disable=invalid-name
@@ -35,7 +37,10 @@ class Image(db.Model):  # type: ignore
     filename: str = db.Column(db.String(), nullable=False)
     data: bytes = db.Column(db.LargeBinary(), nullable=False)
     date_modified: datetime = db.Column(
-        db.DateTime, onupdate=func.now(), server_default=func.now(), nullable=False
+        db.DateTime,
+        onupdate=func.now(),  # pylint: disable=not-callable
+        server_default=func.now(),  # pylint: disable=not-callable
+        nullable=False,
     )
     element_id: int = db.Column(db.Integer, db.ForeignKey("element.id", ondelete="CASCADE"))
 
@@ -57,8 +62,8 @@ class Webhook(db.Model):  # type: ignore
     name: str = db.Column(db.String, nullable=False)
     url: str = db.Column(db.String, nullable=False)
     bits_product: BitsProduct = db.Column(db.Enum(BitsProduct), nullable=False)
-    data: dict = db.Column(db.JSON, default={})
-    include_transaction_data = db.Column(db.Boolean, default=False)
+    data: dict[str, Any] = db.Column(db.JSON, default={})
+    include_transaction_data: bool = db.Column(db.Boolean, default=False)
     cooldown: int = db.Column(db.Integer, default=0)
     last_triggered: datetime = db.Column(db.DateTime, default=datetime.fromtimestamp(0))
     element_id: int = db.Column(db.Integer, db.ForeignKey("element.id", ondelete="CASCADE"))

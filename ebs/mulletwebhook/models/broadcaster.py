@@ -2,9 +2,9 @@
 
 from dataclasses import dataclass
 
-from mulletwebhook.database import db
-from mulletwebhook.models.layout import Layout
 from sqlalchemy.orm import backref
+
+from mulletwebhook.database import db
 
 
 # pylint: disable=invalid-name

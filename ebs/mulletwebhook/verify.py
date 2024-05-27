@@ -1,15 +1,15 @@
 """Functions related to verification of auth tokens."""
 
-from functools import wraps
-from typing import Callable, TypeVar, Tuple, cast
 import base64
+from functools import wraps
+from typing import Callable, Tuple, TypeVar, cast, Any
 
 import jwt
-from flask import Request, current_app, abort
+from flask import Request, abort, current_app
 from flask import request as flask_request
-from mulletwebhook.models.broadcaster import Broadcaster
-from mulletwebhook.models.layout import Layout
+
 from mulletwebhook.models.element import Element, Image, Text, Webhook
+from mulletwebhook.models.layout import Layout
 
 R = TypeVar("R")
 
@@ -22,7 +22,7 @@ def token_required(func: Callable[[int, str], R]) -> Callable[[int, str], R]:
     """
 
     @wraps(func)
-    def decorated_function(*args, **kwargs) -> R:
+    def decorated_function(*args: Any, **kwargs: Any) -> R:
 
         if not current_app.config["TESTING"]:
             try:
@@ -38,16 +38,20 @@ def token_required(func: Callable[[int, str], R]) -> Callable[[int, str], R]:
         current_app.logger.debug(
             "authenticated request for channel_id=%s role=%s", channel_id, role
         )
-        return func(*args, channel_id=channel_id, role=role, **kwargs)
+        return func(*args, **kwargs, channel_id=channel_id, role=role)
 
     return cast(Callable[[int, str], R], decorated_function)
 
 
 def owned_by_broadcaster(func: Callable[[int, str], R]) -> Callable[[int, str], R]:
-    """ """
+    """Decorator that ensures that the broadcaster has permission to the elements being accessed.
+
+    :param func: function to decorate
+    :return: decorated function
+    """
 
     @wraps(func)
-    def decorated_function(*args, **kwargs) -> R:
+    def decorated_function(*args: Any, **kwargs: Any) -> R:
 
         current_app.logger.info(kwargs)
 
@@ -59,7 +63,8 @@ def owned_by_broadcaster(func: Callable[[int, str], R]) -> Callable[[int, str], 
             if layout.broadcaster.id != channel_id:
                 return abort(
                     401,
-                    f"layout with id={layout_id} is not owned by broadcaster={layout.broadcaster.name}",
+                    f"layout with id={layout_id} is not owned by "
+                    f"broadcaster={layout.broadcaster.name}",
                 )
 
         if "element_id" in kwargs:
@@ -68,7 +73,8 @@ def owned_by_broadcaster(func: Callable[[int, str], R]) -> Callable[[int, str], 
             if element.layout.broadcaster.id != channel_id:
                 return abort(
                     401,
-                    f"element with id={element_id} is not owned by broadcaster={element.layout.broadcaster.name}",
+                    f"element with id={element_id} is not owned by "
+                    f"broadcaster={element.layout.broadcaster.name}",
                 )
 
         if "image_id" in kwargs:
@@ -77,7 +83,8 @@ def owned_by_broadcaster(func: Callable[[int, str], R]) -> Callable[[int, str], 
             if image.element.layout.broadcaster.id != channel_id:
                 return abort(
                     401,
-                    f"image with id={image_id} is not owned by broadcaster={image.element.layout.broadcaster.name}",
+                    f"image with id={image_id} is not owned by "
+                    f"broadcaster={image.element.layout.broadcaster.name}",
                 )
 
         if "text_id" in kwargs:
@@ -86,7 +93,8 @@ def owned_by_broadcaster(func: Callable[[int, str], R]) -> Callable[[int, str], 
             if text.element.layout.broadcaster.id != channel_id:
                 return abort(
                     401,
-                    f"text with id={text_id} is not owned by broadcaster={text.element.layout.broadcaster.name}",
+                    f"text with id={text_id} is not owned by "
+                    f"broadcaster={text.element.layout.broadcaster.name}",
                 )
 
         if "webhook_id" in kwargs:
@@ -95,7 +103,8 @@ def owned_by_broadcaster(func: Callable[[int, str], R]) -> Callable[[int, str], 
             if webhook.element.layout.broadcaster.id != channel_id:
                 return abort(
                     401,
-                    f"webhook with id={webhook_id} is not owned by broadcaster={webhook.element.layout.broadcaster.name}",
+                    f"webhook with id={webhook_id} is not owned by "
+                    f"broadcaster={webhook.element.layout.broadcaster.name}",
                 )
 
         return func(*args, **kwargs)
@@ -104,10 +113,14 @@ def owned_by_broadcaster(func: Callable[[int, str], R]) -> Callable[[int, str], 
 
 
 def is_broadcaster(func: Callable[[int, str], R]) -> Callable[[int, str], R]:
-    """ """
+    """Decorator that checks that the user is a broadcaster.
+
+    :param func: function to decorate
+    :return: decorated function
+    """
 
     @wraps(func)
-    def decorated_function(*args, **kwargs) -> R:
+    def decorated_function(*args: Any, **kwargs: Any) -> R:
         current_app.logger.info("role=%s", kwargs["role"])
         if kwargs["role"] != "broadcaster":
             abort(403, "user role is not broadcaster")

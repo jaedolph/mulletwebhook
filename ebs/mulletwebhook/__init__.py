@@ -1,3 +1,5 @@
+"""Initialize the app."""
+
 import logging
 import sys
 
@@ -14,7 +16,11 @@ logging.basicConfig(
 
 
 def create_app(config_class: type = Config) -> Flask:
+    """Creates the mulletwebhook app.
 
+    :param config_class: class to use for app configuration
+    :return: initialized flask app
+    """
     app = Flask(__name__)
     CORS(app)
 
