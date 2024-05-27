@@ -41,3 +41,11 @@ max-args = 10
 max-attributes = 10
 generated-members = "codes.*"
 disable = ["fixme"]
+
+[[tool.mypy.overrides]]
+module = "flask_wtf"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "flask_wtf.file"
+ignore_missing_imports = true

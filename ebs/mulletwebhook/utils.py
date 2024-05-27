@@ -35,7 +35,7 @@ def get_next_layout_position(layout_id: int) -> int:
     try:
         element = (
             Element.query.filter(Element.layout_id == layout_id)
-            .order_by(desc(Element.position))
+            .order_by(desc(Element.position))  # type: ignore
             .limit(1)
             .one()
         )

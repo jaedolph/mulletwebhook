@@ -11,10 +11,10 @@ from flask import request as flask_request
 from mulletwebhook.models.element import Element, Image, Text, Webhook
 from mulletwebhook.models.layout import Layout
 
-R = TypeVar("R")
+R = TypeVar("R", bound=Callable[..., Any])
 
 
-def token_required(func: Callable[[int, str], R]) -> Callable[[int, str], R]:
+def token_required(func: R) -> R:
     """Decorator to validate JWT and get the associated channel_id and role.
 
     :param func: function to decorate
@@ -38,12 +38,12 @@ def token_required(func: Callable[[int, str], R]) -> Callable[[int, str], R]:
         current_app.logger.debug(
             "authenticated request for channel_id=%s role=%s", channel_id, role
         )
-        return func(*args, **kwargs, channel_id=channel_id, role=role)
+        return cast(R, func(*args, **kwargs, channel_id=channel_id, role=role))
 
-    return cast(Callable[[int, str], R], decorated_function)
+    return cast(R, decorated_function)
 
 
-def owned_by_broadcaster(func: Callable[[int, str], R]) -> Callable[[int, str], R]:
+def owned_by_broadcaster(func: R) -> R:
     """Decorator that ensures that the broadcaster has permission to the elements being accessed.
 
     :param func: function to decorate
@@ -107,12 +107,12 @@ def owned_by_broadcaster(func: Callable[[int, str], R]) -> Callable[[int, str], 
                     f"broadcaster={webhook.element.layout.broadcaster.name}",
                 )
 
-        return func(*args, **kwargs)
+        return cast(R, func(*args, **kwargs))
 
-    return cast(Callable[[int, str], R], decorated_function)
+    return cast(R, decorated_function)
 
 
-def is_broadcaster(func: Callable[[int, str], R]) -> Callable[[int, str], R]:
+def is_broadcaster(func: R) -> R:
     """Decorator that checks that the user is a broadcaster.
 
     :param func: function to decorate
@@ -125,9 +125,9 @@ def is_broadcaster(func: Callable[[int, str], R]) -> Callable[[int, str], R]:
         if kwargs["role"] != "broadcaster":
             abort(403, "user role is not broadcaster")
 
-        return func(*args, **kwargs)
+        return cast(R, func(*args, **kwargs))
 
-    return cast(Callable[[int, str], R], decorated_function)
+    return cast(R, decorated_function)
 
 
 def verify_jwt(request: Request) -> Tuple[int, str]:
