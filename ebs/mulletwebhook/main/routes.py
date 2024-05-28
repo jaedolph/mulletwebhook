@@ -461,7 +461,7 @@ def test_webhook(form: WebhookForm) -> None:
         "transactionReceipt": "<jwt with transaction receipt goes here>",
     }
 
-    if form.include_transaction_data:
+    if form.include_transaction_data.data:
         webhook_data["transaction"] = transaction_example
 
     assert isinstance(form.url.data, str)
