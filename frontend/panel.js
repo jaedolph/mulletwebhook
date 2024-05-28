@@ -22,10 +22,7 @@ htmx.on('htmx:configRequest', (e) => {
 twitch.listen('broadcast', function (target, contentType, message) {
   // handle refreshing the panel if the streamer updates the layout
   if (message === 'refresh') {
-    // refresh after a random interval between 0-5s (to reduce EBS load)
-    setTimeout(function () {
-      htmx.trigger('#layout-loader', 'refresh')
-    }, Math.floor(Math.random() * 5000))
+    htmx.trigger('#layout-loader', 'refresh')
   }
 })
 
